@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Settings - Bandwidth Budget Tracker</title>
+  <link rel="stylesheet" href="options.css">
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>⚙️ Settings</h1>
+    </header>
+    
+    <main>
+      <section class="settings-section">
+        <h2>Data Budgets</h2>
+        
+        <div class="setting-item">
+          <label for="dailyBudget">Daily Budget (MB)</label>
+          <input type="number" id="dailyBudget" min="100" step="100" value="500">
+        </div>
+        
+        <div class="setting-item">
+          <label for="monthlyBudget">Monthly Budget (GB)</label>
+          <input type="number" id="monthlyBudget" min="1" step="1" value="10">
+        </div>
+      </section>
+      
+      <section class="settings-section">
+        <h2>Alerts</h2>
+        
+        <div class="setting-item">
+          <label for="alertThreshold">Alert at (% of budget)</label>
+          <input type="number" id="alertThreshold" min="50" max="100" step="5" value="90">
+        </div>
+        
+        <div class="setting-item">
+          <label class="checkbox-label">
+            <input type="checkbox" id="autoLowData" checked>
+            <span>Auto-enable Low-Data Mode at 90% budget</span>
+          </label>
+          <p class="help-text">Automatically blocks images and videos when you approach your budget limit</p>
+        </div>
+      </section>
+      
+      <section class="settings-section">
+        <h2>Data Management</h2>
+        
+        <button id="clearDataBtn" class="danger-btn">Clear All Data</button>
+        <p class="help-text">This will reset all usage statistics</p>
+      </section>
+      
+      <section class="settings-section">
+        <h2>Export & Backup</h2>
+        
+        <div class="export-buttons">
+          <button id="exportJSONBtn" class="secondary-btn">
+            <span>📥 Export to JSON</span>
+            <small>Backup all data</small>
+          </button>
+          
+          <button id="exportCSVBtn" class="secondary-btn">
+            <span>📊 Export to CSV</span>
+            <small>Usage history spreadsheet</small>
+          </button>
+          
+          <button id="generateSummaryBtn" class="secondary-btn">
+            <span>📄 Weekly Summary</span>
+            <small>HTML report</small>
+          </button>
+        </div>
+        
+        <div class="import-section">
+          <h3>Import Data</h3>
+          <input type="file" id="importFileInput" accept=".json" style="display: none;">
+          <button id="importBtn" class="secondary-btn">
+            <span>📤 Import from JSON</span>
+            <small>Restore backup</small>
+          </button>
+          <p class="help-text">Import settings and usage data from a backup file</p>
+        </div>
+      </section>
+      
+      <section class="settings-section">
+        <h2>Blocked Domains</h2>
+        <div id="blockedDomainsList" class="blocked-list">
+          <p class="empty-state">No blocked domains</p>
+        </div>
+      </section>
+      
+      <button id="saveBtn" class="primary-btn">Save Settings</button>
+    </main>
+  </div>
+  
+  <script src="../utils/export-import.js"></script>
+  <script src="options.js"></script>
+</body>
+</html>

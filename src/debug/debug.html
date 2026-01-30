@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Debug - Bandwidth Budget Tracker</title>
+  <style>
+    body {
+      font-family: monospace;
+      padding: 20px;
+      background: #1f2937;
+      color: #f3f4f6;
+      max-width: 800px;
+      margin: 0 auto;
+    }
+    h1 {
+      color: #667eea;
+    }
+    .section {
+      background: #374151;
+      padding: 20px;
+      margin: 20px 0;
+      border-radius: 8px;
+    }
+    button {
+      background: #667eea;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 6px;
+      cursor: pointer;
+      margin: 5px;
+      font-size: 14px;
+    }
+    button:hover {
+      background: #5568d3;
+    }
+    .status {
+      padding: 10px;
+      margin: 10px 0;
+      border-radius: 4px;
+      background: #1f2937;
+    }
+    .success {
+      color: #10b981;
+    }
+    .error {
+      color: #ef4444;
+    }
+    pre {
+      background: #1f2937;
+      padding: 15px;
+      border-radius: 4px;
+      overflow-x: auto;
+    }
+  </style>
+</head>
+<body>
+  <h1>🔧 Debug Panel</h1>
+  
+  <div class="section">
+    <h2>Low-Data Mode Status</h2>
+    <div id="statusDisplay" class="status">Loading...</div>
+    <button onclick="refreshStatus()">🔄 Refresh Status</button>
+    <button onclick="toggleMode()">🔀 Toggle Mode</button>
+  </div>
+  
+  <div class="section">
+    <h2>Chrome Storage</h2>
+    <button onclick="checkStorage()">📦 Check Storage</button>
+    <pre id="storageDisplay">Click button to check storage...</pre>
+  </div>
+  
+  <div class="section">
+    <h2>Dynamic Rules</h2>
+    <button onclick="checkRules()">📋 Check Rules</button>
+    <pre id="rulesDisplay">Click button to check rules...</pre>
+  </div>
+  
+  <div class="section">
+    <h2>Test Messages</h2>
+    <button onclick="testGetStatus()">Test getLowDataStatus</button>
+    <button onclick="testToggle()">Test toggleLowDataMode</button>
+    <pre id="messageDisplay">Click button to test...</pre>
+  </div>
+  
+  <div class="section">
+    <h2>Console Output</h2>
+    <button onclick="openServiceWorkerConsole()">🖥️ Open Service Worker Console</button>
+    <p style="color: #9ca3af; font-size: 12px;">This will open DevTools for the service worker where you can see console.log() output</p>
+  </div>
+
+  <script>
+    async function refreshStatus() {
+      try {
+        const response = await chrome.runtime.sendMessage({ action: 'getLowDataStatus' });
+        document.getElementById('statusDisplay').innerHTML = `
+          <div class="success">✅ Status Retrieved</div>
+          <strong>Enabled:</strong> ${response.enabled}<br>
+          <strong>Blocked Domains:</strong> ${response.blockedDomains.length > 0 ? response.blockedDomains.join(', ') : 'None'}
+        `;
+      } catch (error) {
+        document.getElementById('statusDisplay').innerHTML = `
+          <div class="error">❌ Error: ${error.message}</div>
+        `;
+      }
+    }
+    
+    async function toggleMode() {
+      try {
+        const response = await chrome.runtime.sendMessage({ action: 'toggleLowDataMode' });
+        document.getElementById('statusDisplay').innerHTML = `
+          <div class="success">✅ Toggled Successfully</div>
+          <strong>New State:</strong> ${response.enabled ? 'ENABLED' : 'DISABLED'}
+        `;
+      } catch (error) {
+        document.getElementById('statusDisplay').innerHTML = `
+          <div class="error">❌ Error: ${error.message}</div>
+        `;
+      }
+    }
+    
+    async function checkStorage() {
+      try {
+        const result = await chrome.storage.local.get(null);
+        document.getElementById('storageDisplay').textContent = JSON.stringify(result, null, 2);
+      } catch (error) {
+        document.getElementById('storageDisplay').textContent = 'Error: ' + error.message;
+      }
+    }
+    
+    async function checkRules() {
+      try {
+        const rules = await chrome.declarativeNetRequest.getDynamicRules();
+        document.getElementById('rulesDisplay').textContent = JSON.stringify(rules, null, 2);
+      } catch (error) {
+        document.getElementById('rulesDisplay').textContent = 'Error: ' + error.message;
+      }
+    }
+    
+    async function testGetStatus() {
+      try {
+        const response = await chrome.runtime.sendMessage({ action: 'getLowDataStatus' });
+        document.getElementById('messageDisplay').textContent = 'Success!\n' + JSON.stringify(response, null, 2);
+      } catch (error) {
+        document.getElementById('messageDisplay').textContent = 'Error: ' + error.message;
+      }
+    }
+    
+    async function testToggle() {
+      try {
+        const response = await chrome.runtime.sendMessage({ action: 'toggleLowDataMode' });
+        document.getElementById('messageDisplay').textContent = 'Success!\n' + JSON.stringify(response, null, 2);
+      } catch (error) {
+        document.getElementById('messageDisplay').textContent = 'Error: ' + error.message;
+      }
+    }
+    
+    function openServiceWorkerConsole() {
+      alert('Steps to open Service Worker console:\n\n1. Go to edge://extensions/\n2. Find "Bandwidth Budget Tracker"\n3. Click the blue "service worker" link\n4. DevTools will open with console');
+    }
+    
+    // Auto-refresh on load
+    refreshStatus();
+  </script>
+</body>
+</html>

@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Bandwidth Budget Tracker</title>
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <div class="container">
+    <!-- Header with quick stats -->
+    <div class="header">
+      <div class="header-title">
+        <h1>📊 Bandwidth Tracker</h1>
+        <button id="refreshBtn" class="icon-btn" title="Refresh">🔄</button>
+      </div>
+    </div>
+    
+    <!-- Main Stats Grid -->
+    <div class="stats-grid">
+      <div class="stat-card primary">
+        <div class="stat-icon">📈</div>
+        <div class="stat-content">
+          <span class="stat-label">Today's Usage</span>
+          <span class="stat-value" id="todayUsage">0 MB</span>
+        </div>
+      </div>
+      
+      <div class="stat-card">
+        <div class="stat-icon">🎯</div>
+        <div class="stat-content">
+          <span class="stat-label">Budget Left</span>
+          <span class="stat-value" id="budgetLeft">500 MB</span>
+        </div>
+      </div>
+      
+      <div class="stat-card">
+        <div class="stat-icon">🌐</div>
+        <div class="stat-content">
+          <span class="stat-label">Your IP</span>
+          <span class="stat-value" id="userIP">Loading...</span>
+        </div>
+      </div>
+      
+      <div class="stat-card">
+        <div class="stat-icon">⚡</div>
+        <div class="stat-content">
+          <span class="stat-label">Ping</span>
+          <span class="stat-value" id="pingTime">-- ms</span>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Progress Bar -->
+    <div class="progress-section">
+      <div class="progress-header">
+        <span class="progress-label">Budget Usage</span>
+        <span class="progress-percent" id="progressPercent">0%</span>
+      </div>
+      <div class="progress-bar">
+        <div class="progress-fill" id="progressFill"></div>
+      </div>
+    </div>
+    
+    <!-- Low-Data Mode Toggle -->
+    <div class="control-card">
+      <div class="control-info">
+        <div class="control-icon">🛡️</div>
+        <div>
+          <div class="control-title">Low-Data Mode</div>
+          <div class="control-desc" id="lowDataDesc">Save 70-90% bandwidth</div>
+        </div>
+      </div>
+      <label class="toggle-switch">
+        <input type="checkbox" id="lowDataToggle">
+        <span class="toggle-slider"></span>
+      </label>
+    </div>
+    
+    <!-- Speed Test Card -->
+    <div class="control-card">
+      <div class="control-info">
+        <div class="control-icon">🚀</div>
+        <div>
+          <div class="control-title">Connection Speed</div>
+          <div class="control-desc" id="speedResult">Click to test</div>
+        </div>
+      </div>
+      <button id="speedTestBtn" class="action-btn">Test Speed</button>
+    </div>
+    
+    <!-- Top Sites -->
+    <div class="section">
+      <div class="section-header">
+        <h3>🔥 Top Data Users</h3>
+        <span class="section-count" id="sitesCount">0 sites</span>
+      </div>
+      <div id="sitesList" class="sites-list">
+        <div class="empty-state">
+          <div class="empty-icon">📊</div>
+          <p>No data yet. Start browsing!</p>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Action Buttons -->
+    <div class="actions">
+      <button id="settingsBtn" class="action-btn secondary">
+        <span class="btn-icon">⚙️</span>
+        Settings
+      </button>
+      <button id="chartsBtn" class="action-btn secondary">
+        <span class="btn-icon">📈</span>
+        Charts
+      </button>
+      <button id="helpBtn" class="action-btn secondary">
+        <span class="btn-icon">❓</span>
+        Help
+      </button>
+    </div>
+  </div>
+  
+  <script src="popup.js"></script>
+</body>
+</html>

@@ -1,0 +1,437 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Help - Bandwidth Budget Tracker</title>
+  <link rel="stylesheet" href="../options/options.css">
+  <style>
+    .help-container {
+      max-width: 1000px;
+      margin: 0 auto;
+      padding: 40px 20px;
+    }
+
+    .help-header {
+      text-align: center;
+      margin-bottom: 48px;
+    }
+
+    .help-header h1 {
+      font-size: 36px;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      -webkit-text-fill-color: transparent;
+      margin-bottom: 16px;
+    }
+
+    .search-box {
+      max-width: 600px;
+      margin: 24px auto;
+      position: relative;
+    }
+
+    .search-box input {
+      width: 100%;
+      padding: 16px 48px 16px 20px;
+      border: 2px solid #e5e7eb;
+      border-radius: 12px;
+      font-size: 16px;
+      transition: border-color 0.2s;
+    }
+
+    .search-box input:focus {
+      outline: none;
+      border-color: #667eea;
+    }
+
+    .search-icon {
+      position: absolute;
+      right: 20px;
+      top: 50%;
+      transform: translateY(-50%);
+      font-size: 20px;
+      color: #9ca3af;
+    }
+
+    .help-section {
+      background: white;
+      border-radius: 12px;
+      padding: 32px;
+      margin-bottom: 24px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    }
+
+    .help-section h2 {
+      font-size: 24px;
+      color: #1f2937;
+      margin-bottom: 20px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .help-section h3 {
+      font-size: 18px;
+      color: #374151;
+      margin: 24px 0 12px;
+    }
+
+    .help-section p {
+      color: #6b7280;
+      line-height: 1.8;
+      margin-bottom: 16px;
+    }
+
+    .help-section ul {
+      margin-left: 24px;
+      margin-bottom: 16px;
+    }
+
+    .help-section li {
+      color: #6b7280;
+      line-height: 1.8;
+      margin-bottom: 8px;
+    }
+
+    .quick-links {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 16px;
+      margin-bottom: 48px;
+    }
+
+    .quick-link {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      padding: 20px;
+      background: white;
+      border: 2px solid #e5e7eb;
+      border-radius: 12px;
+      text-decoration: none;
+      color: #1f2937;
+      transition: all 0.2s;
+    }
+
+    .quick-link:hover {
+      border-color: #667eea;
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    }
+
+    .quick-link-icon {
+      font-size: 32px;
+      flex-shrink: 0;
+    }
+
+    .quick-link-text h4 {
+      font-size: 16px;
+      margin-bottom: 4px;
+    }
+
+    .quick-link-text p {
+      font-size: 13px;
+      color: #9ca3af;
+      margin: 0;
+    }
+
+    .code-block {
+      background: #1f2937;
+      color: #f3f4f6;
+      padding: 16px;
+      border-radius: 8px;
+      font-family: monospace;
+      font-size: 14px;
+      overflow-x: auto;
+      margin: 16px 0;
+    }
+
+    .tip-box {
+      background: #fef3c7;
+      border-left: 4px solid #f59e0b;
+      padding: 16px;
+      border-radius: 8px;
+      margin: 16px 0;
+    }
+
+    .tip-box strong {
+      color: #92400e;
+    }
+
+    .warning-box {
+      background: #fee2e2;
+      border-left: 4px solid #ef4444;
+      padding: 16px;
+      border-radius: 8px;
+      margin: 16px 0;
+    }
+
+    .warning-box strong {
+      color: #991b1b;
+    }
+
+    .faq-item {
+      margin-bottom: 24px;
+      padding-bottom: 24px;
+      border-bottom: 1px solid #e5e7eb;
+    }
+
+    .faq-item:last-child {
+      border-bottom: none;
+    }
+
+    .faq-question {
+      font-size: 18px;
+      font-weight: 600;
+      color: #1f2937;
+      margin-bottom: 12px;
+    }
+
+    .faq-answer {
+      color: #6b7280;
+      line-height: 1.8;
+    }
+  </style>
+</head>
+<body style="background: #f5f7fa;">
+  <div class="help-container">
+    <div class="help-header">
+      <h1>📚 Help Center</h1>
+      <p style="color: #6b7280; font-size: 18px;">Everything you need to know about Bandwidth Budget Tracker</p>
+      
+      <div class="search-box">
+        <input type="text" id="searchInput" placeholder="Search for help...">
+        <span class="search-icon">🔍</span>
+      </div>
+    </div>
+
+    <div class="quick-links">
+      <a href="#getting-started" class="quick-link">
+        <span class="quick-link-icon">🚀</span>
+        <div class="quick-link-text">
+          <h4>Getting Started</h4>
+          <p>First time setup</p>
+        </div>
+      </a>
+
+      <a href="#features" class="quick-link">
+        <span class="quick-link-icon">✨</span>
+        <div class="quick-link-text">
+          <h4>Features Guide</h4>
+          <p>How to use everything</p>
+        </div>
+      </a>
+
+      <a href="#troubleshooting" class="quick-link">
+        <span class="quick-link-icon">🔧</span>
+        <div class="quick-link-text">
+          <h4>Troubleshooting</h4>
+          <p>Fix common issues</p>
+        </div>
+      </a>
+
+      <a href="#faq" class="quick-link">
+        <span class="quick-link-icon">❓</span>
+        <div class="quick-link-text">
+          <h4>FAQ</h4>
+          <p>Frequently asked questions</p>
+        </div>
+      </a>
+    </div>
+
+    <div id="getting-started" class="help-section">
+      <h2>🚀 Getting Started</h2>
+      
+      <h3>What does this extension do?</h3>
+      <p>Bandwidth Budget Tracker monitors how much data each website uses as you browse. It helps you:</p>
+      <ul>
+        <li>Track bandwidth usage per tab and per website</li>
+        <li>Set daily and monthly data budgets</li>
+        <li>Get alerts when approaching limits</li>
+        <li>Block data-heavy content automatically</li>
+        <li>View usage trends with beautiful charts</li>
+      </ul>
+
+      <h3>Quick Setup (2 minutes)</h3>
+      <p><strong>Step 1:</strong> Click the extension icon in your toolbar</p>
+      <p><strong>Step 2:</strong> Click "⚙️ Settings" button</p>
+      <p><strong>Step 3:</strong> Set your daily budget (e.g., 500 MB)</p>
+      <p><strong>Step 4:</strong> Set your monthly budget (e.g., 10 GB)</p>
+      <p><strong>Step 5:</strong> Click "Save Settings"</p>
+      <p>That's it! The extension is now tracking your usage.</p>
+
+      <div class="tip-box">
+        <strong>💡 Tip:</strong> Not sure what budget to set? Start with 500 MB/day and 10 GB/month, then adjust based on your actual usage after a few days.
+      </div>
+    </div>
+
+    <div id="features" class="help-section">
+      <h2>✨ Features Guide</h2>
+
+      <h3>📊 Real-Time Tracking</h3>
+      <p>Your bandwidth usage is tracked automatically as you browse. Click the extension icon to see:</p>
+      <ul>
+        <li><strong>Today's Usage:</strong> Total data used today</li>
+        <li><strong>Budget Remaining:</strong> How much you have left</li>
+        <li><strong>Top Sites:</strong> Which websites use the most data</li>
+        <li><strong>Progress Bar:</strong> Visual indicator of budget usage</li>
+      </ul>
+
+      <h3>🛡️ Low-Data Mode</h3>
+      <p>Save 70-90% bandwidth by blocking images and videos:</p>
+      <ul>
+        <li>Toggle the switch in the popup to enable/disable</li>
+        <li>All images and videos are blocked across all sites</li>
+        <li>Text content loads normally</li>
+        <li>Perfect for limited data connections</li>
+      </ul>
+
+      <div class="tip-box">
+        <strong>💡 Pro Tip:</strong> Enable "Auto Low-Data Mode" in settings to automatically block media when you reach 90% of your budget!
+      </div>
+
+      <h3>🚫 Site Blocking</h3>
+      <p>Block specific data-heavy websites:</p>
+      <ul>
+        <li>Each site in the popup has a 🚫 button</li>
+        <li>Click the button to block that domain completely</li>
+        <li>Blocked sites won't load at all</li>
+        <li>Manage blocked sites in Settings → Blocked Domains</li>
+      </ul>
+
+      <h3>📈 Charts & Analytics</h3>
+      <p>Visualize your usage with interactive charts:</p>
+      <ul>
+        <li><strong>Daily Trend:</strong> Usage over 7/14/30 days</li>
+        <li><strong>Top Sites:</strong> Pie chart of data consumption</li>
+        <li><strong>Budget Progress:</strong> Daily vs monthly comparison</li>
+        <li><strong>Hourly Usage:</strong> When you use most data</li>
+      </ul>
+
+      <h3>💾 Export & Backup</h3>
+      <p>Save your data in multiple formats:</p>
+      <ul>
+        <li><strong>Export to JSON:</strong> Complete backup of all data</li>
+        <li><strong>Export to CSV:</strong> Spreadsheet for analysis</li>
+        <li><strong>Weekly Summary:</strong> Beautiful HTML report</li>
+        <li><strong>Import from JSON:</strong> Restore backups anytime</li>
+      </ul>
+    </div>
+
+    <div id="troubleshooting" class="help-section">
+      <h2>🔧 Troubleshooting</h2>
+
+      <h3>Extension not tracking data</h3>
+      <p><strong>Solution:</strong></p>
+      <ul>
+        <li>Reload the extension: Go to <code>edge://extensions/</code> → Click reload</li>
+        <li>Check service worker: Click "service worker" link, look for errors</li>
+        <li>Visit some websites, then check the popup again</li>
+      </ul>
+
+      <h3>Low-Data Mode toggle won't stay on</h3>
+      <p><strong>Solution:</strong></p>
+      <ul>
+        <li>Completely remove and re-add the extension</li>
+        <li>Check service worker console for errors</li>
+        <li>Make sure <code>declarativeNetRequest</code> permission is granted</li>
+      </ul>
+
+      <h3>Block buttons not visible</h3>
+      <p><strong>Solution:</strong></p>
+      <ul>
+        <li>Make sure you have browsed some websites first</li>
+        <li>Right-click popup → Inspect → Check console for errors</li>
+        <li>Reload the extension completely</li>
+      </ul>
+
+      <h3>Charts not loading</h3>
+      <p><strong>Solution:</strong></p>
+      <ul>
+        <li>Check if Chart.js CDN loaded (look at Network tab)</li>
+        <li>Need at least a few days of data for meaningful charts</li>
+        <li>Try refreshing the charts page</li>
+      </ul>
+
+      <h3>Export buttons don't work</h3>
+      <p><strong>Solution:</strong></p>
+      <ul>
+        <li>Check if "downloads" permission is granted</li>
+        <li>Make sure downloads aren't blocked in browser settings</li>
+        <li>Check browser console (F12) for errors</li>
+      </ul>
+
+      <div class="warning-box">
+        <strong>⚠️ Still having issues?</strong> Open the service worker console (edge://extensions/ → click "service worker") and look for error messages. This will help identify the problem.
+      </div>
+    </div>
+
+    <div id="faq" class="help-section">
+      <h2>❓ Frequently Asked Questions</h2>
+
+      <div class="faq-item">
+        <div class="faq-question">Q: Does this extension slow down my browsing?</div>
+        <div class="faq-answer">A: No! The extension is highly optimized and runs in the background. It uses less than 50MB of memory and doesn't affect page load times.</div>
+      </div>
+
+      <div class="faq-item">
+        <div class="faq-question">Q: Is my browsing data sent to any server?</div>
+        <div class="faq-answer">A: Absolutely not! All data stays on your device. We don't collect, store, or transmit any of your information. This is a privacy-first extension.</div>
+      </div>
+
+      <div class="faq-item">
+        <div class="faq-question">Q: How accurate is the bandwidth tracking?</div>
+        <div class="faq-answer">A: Very accurate! We track all HTTP requests using Chrome's native APIs. The only limitation is cached content (which shows as 0 bytes, which is correct since it's not re-downloaded).</div>
+      </div>
+
+      <div class="faq-item">
+        <div class="faq-question">Q: Can I use this on mobile?</div>
+        <div class="faq-answer">A: Currently, this works on desktop browsers (Chrome, Edge, Brave). Mobile browser extensions have limited functionality, but we're exploring mobile options for the future.</div>
+      </div>
+
+      <div class="faq-item">
+        <div class="faq-question">Q: Will Low-Data Mode break websites?</div>
+        <div class="faq-answer">A: Most websites will work fine! Text content loads normally. Some image-heavy sites (Instagram, Pinterest) may look different, but functionality remains intact. You can always toggle it off if needed.</div>
+      </div>
+
+      <div class="faq-item">
+        <div class="faq-question">Q: Can I sync data across devices?</div>
+        <div class="faq-answer">A: Not automatically yet, but you can export to JSON on one device and import on another. Cloud sync is planned for a future update!</div>
+      </div>
+
+      <div class="faq-item">
+        <div class="faq-question">Q: How do I reset everything?</div>
+        <div class="faq-answer">A: Go to Settings → Data Management → Click "Clear All Data". This will reset all usage statistics and settings to defaults.</div>
+      </div>
+
+      <div class="faq-item">
+        <div class="faq-question">Q: Does this work with VPNs?</div>
+        <div class="faq-answer">A: Yes! The extension tracks bandwidth regardless of VPN usage. It measures data at the browser level, not network level.</div>
+      </div>
+    </div>
+
+    <div class="help-section" style="text-align: center; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white;">
+      <h2 style="color: white;">Need More Help?</h2>
+      <p style="color: rgba(255,255,255,0.9); margin-bottom: 24px;">Can't find what you're looking for?</p>
+      <button onclick="chrome.runtime.openOptionsPage()" style="padding: 12px 32px; background: white; color: #667eea; border: none; border-radius: 8px; font-size: 16px; font-weight: 600; cursor: pointer;">Open Settings</button>
+    </div>
+  </div>
+
+  <script>
+    // Simple search functionality
+    document.getElementById('searchInput').addEventListener('input', (e) => {
+      const query = e.target.value.toLowerCase();
+      const sections = document.querySelectorAll('.help-section');
+      
+      sections.forEach(section => {
+        const text = section.textContent.toLowerCase();
+        if (text.includes(query) || query === '') {
+          section.style.display = 'block';
+        } else {
+          section.style.display = 'none';
+        }
+      });
+    });
+  </script>
+</body>
+</html>

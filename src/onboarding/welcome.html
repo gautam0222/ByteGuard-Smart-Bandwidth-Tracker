@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Welcome to Bandwidth Budget Tracker</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    .container {
+      max-width: 900px;
+      width: 100%;
+      background: white;
+      border-radius: 20px;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+      overflow: hidden;
+    }
+
+    .header {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      padding: 40px;
+      text-align: center;
+    }
+
+    .header h1 {
+      font-size: 36px;
+      margin-bottom: 10px;
+    }
+
+    .header p {
+      font-size: 18px;
+      opacity: 0.9;
+    }
+
+    .steps {
+      padding: 40px;
+    }
+
+    .step {
+      display: flex;
+      gap: 24px;
+      margin-bottom: 40px;
+      padding: 24px;
+      background: #f9fafb;
+      border-radius: 12px;
+      border-left: 4px solid #667eea;
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+
+    .step:hover {
+      transform: translateX(4px);
+      box-shadow: 0 4px 12px rgba(102, 126, 234, 0.2);
+    }
+
+    .step-number {
+      flex-shrink: 0;
+      width: 48px;
+      height: 48px;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 24px;
+      font-weight: bold;
+    }
+
+    .step-content h3 {
+      font-size: 20px;
+      color: #1f2937;
+      margin-bottom: 8px;
+    }
+
+    .step-content p {
+      color: #6b7280;
+      line-height: 1.6;
+      font-size: 15px;
+    }
+
+    .features {
+      padding: 0 40px 40px;
+    }
+
+    .features h2 {
+      text-align: center;
+      font-size: 28px;
+      color: #1f2937;
+      margin-bottom: 30px;
+    }
+
+    .feature-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 20px;
+    }
+
+    .feature-card {
+      padding: 24px;
+      background: white;
+      border: 2px solid #e5e7eb;
+      border-radius: 12px;
+      text-align: center;
+      transition: all 0.2s;
+    }
+
+    .feature-card:hover {
+      border-color: #667eea;
+      transform: translateY(-4px);
+      box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+    }
+
+    .feature-icon {
+      font-size: 48px;
+      margin-bottom: 12px;
+    }
+
+    .feature-card h4 {
+      font-size: 18px;
+      color: #1f2937;
+      margin-bottom: 8px;
+    }
+
+    .feature-card p {
+      font-size: 14px;
+      color: #6b7280;
+      line-height: 1.5;
+    }
+
+    .actions {
+      padding: 40px;
+      background: #f9fafb;
+      display: flex;
+      gap: 16px;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+
+    .btn {
+      padding: 14px 32px;
+      border-radius: 8px;
+      font-size: 16px;
+      font-weight: 600;
+      border: none;
+      cursor: pointer;
+      transition: all 0.2s;
+      text-decoration: none;
+      display: inline-block;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+    }
+
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 16px rgba(102, 126, 234, 0.3);
+    }
+
+    .btn-secondary {
+      background: white;
+      color: #667eea;
+      border: 2px solid #667eea;
+    }
+
+    .btn-secondary:hover {
+      background: #667eea;
+      color: white;
+    }
+
+    .tip {
+      margin: 30px 40px;
+      padding: 20px;
+      background: #fef3c7;
+      border-left: 4px solid #f59e0b;
+      border-radius: 8px;
+    }
+
+    .tip strong {
+      color: #92400e;
+      display: block;
+      margin-bottom: 8px;
+    }
+
+    .tip p {
+      color: #78350f;
+      line-height: 1.6;
+    }
+
+    @media (max-width: 768px) {
+      .header h1 {
+        font-size: 28px;
+      }
+      
+      .step {
+        flex-direction: column;
+      }
+      
+      .feature-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>🎉 Welcome to Bandwidth Budget Tracker!</h1>
+      <p>Take control of your data usage in just a few steps</p>
+    </div>
+
+    <div class="steps">
+      <div class="step">
+        <div class="step-number">1</div>
+        <div class="step-content">
+          <h3>📊 Start Tracking Automatically</h3>
+          <p>Your extension is already monitoring bandwidth usage! Just browse normally and we'll track everything in the background. No setup required.</p>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-number">2</div>
+        <div class="step-content">
+          <h3>🎯 Set Your Budget</h3>
+          <p>Click the extension icon → Settings → Set your daily and monthly data budgets. We'll alert you when you're approaching your limits.</p>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-number">3</div>
+        <div class="step-content">
+          <h3>🛡️ Enable Low-Data Mode (Optional)</h3>
+          <p>Turn on the Low-Data Mode toggle in the popup to block images and videos automatically. Save up to 90% bandwidth instantly!</p>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-number">4</div>
+        <div class="step-content">
+          <h3>📈 View Your Analytics</h3>
+          <p>Click the Charts button to see beautiful visualizations of your usage patterns, trends, and top data-consuming sites.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="features">
+      <h2>✨ Key Features</h2>
+      <div class="feature-grid">
+        <div class="feature-card">
+          <div class="feature-icon">⚡</div>
+          <h4>Real-Time Tracking</h4>
+          <p>Monitor bandwidth usage per tab and site as you browse</p>
+        </div>
+
+        <div class="feature-card">
+          <div class="feature-icon">🎯</div>
+          <h4>Smart Budgets</h4>
+          <p>Set daily/monthly limits with automatic alerts</p>
+        </div>
+
+        <div class="feature-card">
+          <div class="feature-icon">🛡️</div>
+          <h4>Low-Data Mode</h4>
+          <p>Block images & videos to save 70-90% bandwidth</p>
+        </div>
+
+        <div class="feature-card">
+          <div class="feature-icon">📊</div>
+          <h4>Beautiful Charts</h4>
+          <p>Visualize trends with interactive graphs</p>
+        </div>
+
+        <div class="feature-card">
+          <div class="feature-icon">🚫</div>
+          <h4>Site Blocking</h4>
+          <p>Block data-heavy websites with one click</p>
+        </div>
+
+        <div class="feature-card">
+          <div class="feature-icon">💾</div>
+          <h4>Export & Backup</h4>
+          <p>Download your data as JSON, CSV, or reports</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="tip">
+      <strong>💡 Pro Tip:</strong>
+      <p>Enable "Auto Low-Data Mode" in Settings to automatically block media when you reach 90% of your budget. This prevents unexpected overages!</p>
+    </div>
+
+    <div class="actions">
+      <button id="getStartedBtn" class="btn btn-primary">🚀 Get Started</button>
+      <button id="settingsBtn" class="btn btn-secondary">⚙️ Configure Settings</button>
+    </div>
+  </div>
+
+  <script>
+    document.getElementById('getStartedBtn').addEventListener('click', () => {
+      // Set flag that onboarding is complete
+      chrome.storage.local.set({ onboardingComplete: true });
+      window.close();
+    });
+
+    document.getElementById('settingsBtn').addEventListener('click', () => {
+      chrome.storage.local.set({ onboardingComplete: true });
+      chrome.runtime.openOptionsPage();
+      window.close();
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Usage Charts - Bandwidth Budget Tracker</title>
+  <link rel="stylesheet" href="charts.css">
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>📊 Usage Analytics</h1>
+      <button id="backBtn" class="back-btn">← Back to Popup</button>
+    </header>
+    
+    <div class="stats-summary">
+      <div class="stat-card">
+        <span class="stat-icon">📅</span>
+        <div class="stat-content">
+          <span class="stat-label">Today's Usage</span>
+          <span class="stat-value" id="todayTotal">0 MB</span>
+        </div>
+      </div>
+      
+      <div class="stat-card">
+        <span class="stat-icon">📈</span>
+        <div class="stat-content">
+          <span class="stat-label">7-Day Average</span>
+          <span class="stat-value" id="weekAverage">0 MB</span>
+        </div>
+      </div>
+      
+      <div class="stat-card">
+        <span class="stat-icon">🎯</span>
+        <div class="stat-content">
+          <span class="stat-label">Budget Status</span>
+          <span class="stat-value" id="budgetStatus">On Track</span>
+        </div>
+      </div>
+      
+      <div class="stat-card">
+        <span class="stat-icon">🔥</span>
+        <div class="stat-content">
+          <span class="stat-label">Top Site</span>
+          <span class="stat-value" id="topSite">None</span>
+        </div>
+      </div>
+    </div>
+    
+    <div class="charts-grid">
+      <!-- Daily Usage Trend -->
+      <div class="chart-card">
+        <div class="chart-header">
+          <h2>📈 Daily Usage Trend</h2>
+          <select id="trendPeriod" class="period-selector">
+            <option value="7">Last 7 Days</option>
+            <option value="14">Last 14 Days</option>
+            <option value="30">Last 30 Days</option>
+          </select>
+        </div>
+        <div class="chart-container">
+          <canvas id="dailyTrendChart"></canvas>
+        </div>
+      </div>
+      
+      <!-- Top Sites by Usage -->
+      <div class="chart-card">
+        <div class="chart-header">
+          <h2>🌐 Top Sites</h2>
+          <span class="chart-subtitle">By data consumption</span>
+        </div>
+        <div class="chart-container">
+          <canvas id="topSitesChart"></canvas>
+        </div>
+      </div>
+      
+      <!-- Budget Progress -->
+      <div class="chart-card">
+        <div class="chart-header">
+          <h2>🎯 Budget Progress</h2>
+          <span class="chart-subtitle">Daily vs Monthly</span>
+        </div>
+        <div class="chart-container">
+          <canvas id="budgetProgressChart"></canvas>
+        </div>
+      </div>
+      
+      <!-- Usage by Time -->
+      <div class="chart-card">
+        <div class="chart-header">
+          <h2>⏰ Usage by Hour</h2>
+          <span class="chart-subtitle">When you use most data</span>
+        </div>
+        <div class="chart-container">
+          <canvas id="hourlyUsageChart"></canvas>
+        </div>
+      </div>
+    </div>
+    
+    <div class="insights-section">
+      <h2>💡 Insights & Recommendations</h2>
+      <div id="insightsList" class="insights-list">
+        <div class="insight-card">
+          <span class="insight-icon">📊</span>
+          <p>Loading insights...</p>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+  <script src="charts.js"></script>
+</body>
+</html>
