@@ -179,18 +179,40 @@ class LowDataManager {
       await chrome.declarativeNetRequest.updateDynamicRules({
         addRules: [{
           id: ruleId,
-          priority: 2,
+          priority: 3, // Higher priority than low-data mode
           action: { type: 'block' },
           condition: {
             requestDomains: [domain],
-            resourceTypes: ['main_frame', 'sub_frame']
+            resourceTypes: [
+              'main_frame',
+              'sub_frame', 
+              'stylesheet',
+              'script',
+              'image',
+              'font',
+              'object',
+              'xmlhttprequest',
+              'ping',
+              'csp_report',
+              'media',
+              'websocket',
+              'webtransport',
+              'webbundle',
+              'other'
+            ]
           }
         }]
       });
       
-      console.log(`✅ Blocked domain: ${domain}`);
+      console.log(`✅ Blocked domain: ${domain} with rule ID ${ruleId}`);
+      
+      // Verify the rule was created
+      const rules = await chrome.declarativeNetRequest.getDynamicRules();
+      console.log('Current blocking rules:', rules);
+      
     } catch (error) {
       console.error('Error blocking domain:', error);
+      throw error; // Propagate error so UI can show it
     }
   }
   
@@ -336,13 +358,53 @@ class DataTracker {
   
   static async checkBudgets(data) {
     const settings = await StorageManager.getSettings();
+    const result = await chrome.storage.local.get(['lastAlertTime', 'lastAlertPercentage']);
     
-    if (settings.dailyBudget && data.totalToday >= settings.dailyBudget * 0.9) {
+    const now = Date.now();
+    const lastAlert = result.lastAlertTime || 0;
+    const lastPercentage = result.lastAlertPercentage || 0;
+    const timeSinceLastAlert = now - lastAlert;
+    const alertCooldown = 30 * 60 * 1000; // 30 minutes
+    
+    const currentPercentage = Math.floor((data.totalToday / settings.dailyBudget) * 100);
+    
+    // Only alert if:
+    // 1. At least 30 minutes since last alert, OR
+    // 2. We've crossed a new threshold (80%, 90%, 100%)
+    const shouldAlert = (
+      (currentPercentage >= 80 && lastPercentage < 80) ||
+      (currentPercentage >= 90 && lastPercentage < 90) ||
+      (currentPercentage >= 100 && lastPercentage < 100) ||
+      (timeSinceLastAlert > alertCooldown && currentPercentage >= 90)
+    );
+    
+    if (settings.dailyBudget && shouldAlert) {
+      let message = '';
+      let title = 'Data Budget Alert';
+      
+      if (currentPercentage >= 100) {
+        title = '🚨 Budget Exceeded!';
+        message = `You've used ${formatBytes(data.totalToday)} (${currentPercentage}% of budget). Consider enabling Low-Data Mode!`;
+      } else if (currentPercentage >= 90) {
+        title = '⚠️ Approaching Limit';
+        message = `You've used ${currentPercentage}% of your daily budget (${formatBytes(data.totalToday)} / ${formatBytes(settings.dailyBudget)})`;
+      } else if (currentPercentage >= 80) {
+        title = '📊 Budget Warning';
+        message = `You've used ${currentPercentage}% of your daily budget. You have ${formatBytes(settings.dailyBudget - data.totalToday)} remaining.`;
+      }
+      
       chrome.notifications.create({
         type: 'basic',
         iconUrl: '../assets/icons/icon-128.png',
-        title: 'Data Budget Alert',
-        message: `You've used ${formatBytes(data.totalToday)} of your ${formatBytes(settings.dailyBudget)} daily budget!`
+        title: title,
+        message: message,
+        priority: 2
+      });
+      
+      // Update last alert time and percentage
+      await chrome.storage.local.set({ 
+        lastAlertTime: now,
+        lastAlertPercentage: currentPercentage
       });
       
       // Check if we should auto-enable low-data mode
