@@ -4,45 +4,27 @@
  */
 
 // ============================================
-// Storage Manager (inline)
-// ============================================
-class StorageManager {
-  static async getSettings() {
-    const result = await chrome.storage.local.get('settings');
-    return result.settings || {
-      dailyBudget: 500 * 1024 * 1024,
-      monthlyBudget: 10 * 1024 * 1024 * 1024,
-      alertThreshold: 90
-    };
-  }
-  
-  static async getUsageData() {
-    const result = await chrome.storage.local.get('usage');
-    return result.usage || { totalToday: 0, tabs: {}, domains: {}, history: [] };
-  }
-  
-  static async saveUsageData(usage) {
-    await chrome.storage.local.set({ usage });
-  }
-}
-
-// ============================================
 // Helper Functions
 // ============================================
-function formatBytes(bytes, decimals = 2) {
-  if (bytes === 0) return '0 Bytes';
-  
-  const k = 1024;
-  const dm = decimals < 0 ? 0 : decimals;
-  const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB'];
-  
-  const i = Math.floor(Math.log(bytes) / Math.log(k));
-  
-  return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + ' ' + sizes[i];
+import { StorageManager } from "../utils/storage.js";
+import { formatBytes } from "../utils/helpers.js";
+
+function showEmptyState() {
+  const containers = document.querySelectorAll('.chart-card canvas');
+  containers.forEach(canvas => {
+    const parent = canvas.parentElement;
+    parent.innerHTML = `
+      <div style="text-align:center;padding:40px;color:#999;">
+        No data available yet.<br>
+        Browse some websites to generate usage data.
+      </div>
+    `;
+  });
 }
 
+
 function getMBValue(bytes) {
-  return (bytes / (1024 * 1024)).toFixed(2);
+  return (bytes / (1024 * 1024));
 }
 
 function getDateString(daysAgo = 0) {
@@ -61,27 +43,13 @@ function getDateLabel(daysAgo = 0) {
 // Data Generation & Management
 // ============================================
 async function generateHistoricalData() {
-  const usage = await StorageManager.getUsageData();
+  const usage = await StorageManager.getUsage();
   
   // If no history exists, create mock data for demo
   if (!usage.history || usage.history.length === 0) {
-    usage.history = [];
-    
-    // Generate last 30 days of data
-    for (let i = 29; i >= 0; i--) {
-      const date = getDateString(i);
-      const randomUsage = Math.floor(Math.random() * 800 + 200) * 1024 * 1024; // 200-1000 MB
-      
-      usage.history.push({
-        date: date,
-        total: randomUsage,
-        domains: i === 0 ? usage.domains : {} // Today uses real data
-      });
-    }
-    
-    await StorageManager.saveUsageData(usage);
-  }
-  
+    showEmptyState();
+    return;
+}
   return usage;
 }
 
@@ -91,7 +59,7 @@ async function generateHistoricalData() {
 let charts = {};
 
 async function initCharts() {
-  const usage = await generateHistoricalData();
+  const usage = await StorageManager.getUsage();
   const settings = await StorageManager.getSettings();
   
   // Update stats summary
@@ -204,6 +172,19 @@ function createTopSitesChart(usage) {
   const sortedDomains = Object.entries(usage.domains)
     .sort(([, a], [, b]) => b - a)
     .slice(0, 5);
+
+    if (sortedDomains.length === 0) {
+  const canvas = document.getElementById('topSitesChart');
+  canvas.parentElement.innerHTML = `
+    <div class="empty-state">
+      <div class="empty-state-icon">📊</div>
+      <h3>No data yet</h3>
+      <p>Browse some websites to see analytics.</p>
+    </div>
+  `;
+  return;
+}
+
   
   const labels = sortedDomains.map(([domain]) => domain);
   const data = sortedDomains.map(([, bytes]) => getMBValue(bytes));
@@ -360,9 +341,18 @@ function createBudgetProgressChart(usage, settings) {
 function createHourlyUsageChart(usage) {
   const ctx = document.getElementById('hourlyUsageChart');
   
-  // Generate mock hourly data for demo
-  const hours = ['12AM', '3AM', '6AM', '9AM', '12PM', '3PM', '6PM', '9PM'];
-  const data = [5, 3, 8, 45, 120, 180, 210, 95]; // Mock MB values
+  if (!usage.hourly) {
+    ctx.parentElement.innerHTML = `
+      <div class="empty-state">
+        <div class="empty-state-icon">🕒</div>
+        <h3>No hourly data yet</h3>
+      </div>
+    `;
+    return;
+  }
+
+  const hours = Array.from({ length: 24 }, (_, i) => i);
+  const data = hours.map(h => (usage.hourly[h] || 0) / (1024 * 1024));
   
   if (charts.hourlyUsage) {
     charts.hourlyUsage.destroy();
@@ -426,6 +416,10 @@ function createHourlyUsageChart(usage) {
 // ============================================
 function updateStatsSummary(usage, settings) {
   // Today's usage
+  const totalToday = usage.totalToday || 0;
+  const totalMonth = usage.totalMonth || 0;
+  const domains = usage.domains || {};
+
   document.getElementById('todayTotal').textContent = formatBytes(usage.totalToday);
   
   // 7-day average
@@ -471,7 +465,8 @@ function generateInsights(usage, settings) {
   const topSite = Object.entries(usage.domains)
     .sort(([, a], [, b]) => b - a)[0];
   if (topSite) {
-    const sitePercentage = (topSite[1] / usage.totalToday) * 100;
+    const sitePercentage = usage.totalToday > 0 ? (topSite[1] / usage.totalToday) * 100: 0;
+
     insights.push({
       icon: '🌐',
       text: `<strong>${topSite[0]}</strong> accounts for <strong>${sitePercentage.toFixed(1)}%</strong> (${formatBytes(topSite[1])}) of your usage today. Consider blocking media on this site if needed.`
@@ -515,7 +510,7 @@ document.getElementById('backBtn').addEventListener('click', () => {
 
 document.getElementById('trendPeriod').addEventListener('change', async (e) => {
   const days = parseInt(e.target.value);
-  const usage = await StorageManager.getUsageData();
+  const usage = await StorageManager.getUsage();
   
   // Update chart with selected period
   const labels = [];

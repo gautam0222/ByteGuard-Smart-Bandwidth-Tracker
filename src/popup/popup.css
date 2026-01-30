@@ -105,9 +105,14 @@ body {
 /* Header */
 .header {
   background: linear-gradient(135deg, var(--accent-primary) 0%, var(--accent-secondary) 100%);
-  padding: 20px;
+  padding: 20px 20px 30px;
   position: relative;
   overflow: hidden;
+}
+
+.stats-container {
+  padding: 20px;
+  margin-top: -20px; /* subtle overlap, but controlled */
 }
 
 .header::before {
@@ -179,8 +184,7 @@ body {
 /* Stats Container */
 .stats-container {
   padding: 20px;
-  padding-top: 0;
-  margin-top: -10px;
+  margin-top: 16px;
 }
 
 .stat-card {
@@ -382,7 +386,7 @@ body {
   height: 200%;
   background: radial-gradient(ellipse, var(--accent-primary) 0%, transparent 70%);
   opacity: 0.3;
-  filter: blur(10px);
+  display: none;
   pointer-events: none;
 }
 

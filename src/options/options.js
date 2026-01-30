@@ -5,42 +5,8 @@
 // ============================================
 // Storage Manager (inline)
 // ============================================
-class StorageManager {
-  static async getSettings() {
-    const result = await chrome.storage.local.get('settings');
-    return result.settings || {
-      dailyBudget: 500 * 1024 * 1024,
-      monthlyBudget: 10 * 1024 * 1024 * 1024,
-      alertThreshold: 90
-    };
-  }
-  
-  static async saveSettings(settings) {
-    await chrome.storage.local.set({ settings });
-  }
-  
-  static async clearAllData() {
-    await chrome.storage.local.clear();
-    // Reset defaults
-    const defaults = {
-      settings: {
-        dailyBudget: 500 * 1024 * 1024,
-        monthlyBudget: 10 * 1024 * 1024 * 1024,
-        alertThreshold: 90,
-        unit: 'MB',
-        theme: 'light'
-      },
-      usage: {
-        totalToday: 0,
-        totalMonth: 0,
-        tabs: {},
-        domains: {},
-        history: []
-      }
-    };
-    await chrome.storage.local.set(defaults);
-  }
-}
+import { StorageManager } from "../utils/storage.js";
+import { ExportImportManager } from "../utils/exportImportManager.js";
 
 // ============================================
 // UI Functions
@@ -93,15 +59,24 @@ async function saveSettings() {
   const settings = {
     dailyBudget: parseInt(document.getElementById('dailyBudget').value) * 1024 * 1024,
     monthlyBudget: parseInt(document.getElementById('monthlyBudget').value) * 1024 * 1024 * 1024,
-    alertThreshold: parseInt(document.getElementById('alertThreshold').value),
+    alertThreshold: parseInt(document.getElementById('alertThreshold').value)
   };
+  
+  if (isNaN(settings.dailyBudget) || settings.dailyBudget <= 0) {
+    alert("Daily budget must be a positive number.");
+    return;
+  }
   
   const autoLowData = document.getElementById('autoLowData').checked;
   
   await StorageManager.saveSettings(settings);
   await chrome.storage.local.set({ autoLowData });
   
-  alert('Settings saved successfully!');
+  const msg = document.getElementById('saveMessage');
+msg.textContent = "Settings saved!";
+msg.style.display = "block";
+setTimeout(() => msg.style.display = "none", 3000);
+
 }
 
 document.getElementById('saveBtn').addEventListener('click', saveSettings);

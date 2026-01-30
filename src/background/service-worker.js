@@ -2,9 +2,25 @@
  * Bandwidth Budget Tracker - Service Worker
  * Handles network monitoring and data tracking
  */
+import { StorageManager } from "../utils/storage.js";
+import { formatBytes } from "../utils/helpers.js";
+import { ExportImportManager } from "../utils/exportImportManager.js";
 
 console.log('🚀 Bandwidth Budget Tracker service worker started');
+let saveTimeout = null;
+let pendingData = null;
 
+function scheduleSave(data) {
+  pendingData = data;
+
+  if (saveTimeout) return;
+
+  saveTimeout = setTimeout(async () => {
+    await StorageManager.saveUsage(pendingData);
+    saveTimeout = null;
+    pendingData = null;
+  }, 2000);
+}
 // ============================================
 // Low-Data Mode Manager
 // ============================================
@@ -230,70 +246,6 @@ class LowDataManager {
 }
 
 // ============================================
-// Storage Manager
-// ============================================
-class StorageManager {
-  static async setDefaults() {
-    const defaults = {
-      settings: {
-        dailyBudget: 500 * 1024 * 1024, // 500 MB
-        monthlyBudget: 10 * 1024 * 1024 * 1024, // 10 GB
-        alertThreshold: 90, // %
-        unit: 'MB',
-        theme: 'light'
-      },
-      usage: {
-        totalToday: 0,
-        totalMonth: 0,
-        tabs: {},
-        domains: {},
-        history: []
-      }
-    };
-    
-    await chrome.storage.local.set(defaults);
-  }
-  
-  static async getSettings() {
-    const result = await chrome.storage.local.get('settings');
-    return result.settings || {};
-  }
-  
-  static async saveSettings(settings) {
-    await chrome.storage.local.set({ settings });
-  }
-  
-  static async getUsageData() {
-    const result = await chrome.storage.local.get('usage');
-    return result.usage || { totalToday: 0, tabs: {}, domains: {} };
-  }
-  
-  static async saveUsageData(usage) {
-    await chrome.storage.local.set({ usage });
-  }
-  
-  static async clearAllData() {
-    await chrome.storage.local.clear();
-    await this.setDefaults();
-  }
-}
-
-// ============================================
-// Helper Functions
-// ============================================
-function formatBytes(bytes, decimals = 2) {
-  if (bytes === 0) return '0 Bytes';
-  
-  const k = 1024;
-  const dm = decimals < 0 ? 0 : decimals;
-  const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB'];
-  
-  const i = Math.floor(Math.log(bytes) / Math.log(k));
-  
-  return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + ' ' + sizes[i];
-}
-
-// ============================================
 // Data Tracker
 // ============================================
 class DataTracker {
@@ -331,7 +283,15 @@ class DataTracker {
   }
   
   static async updateUsage(tabId, domain, bytes) {
-    const data = await StorageManager.getUsageData();
+    const hour = new Date().getHours();
+    const data = await StorageManager.getUsage();
+
+    if (!data.hourly) data.hourly = {};
+    if (!data.hourly[hour]) data.hourly[hour] = 0;
+
+    data.hourly[hour] += bytes;
+
+    
     
     // Initialize if needed
     if (!data.tabs[tabId]) {
@@ -350,7 +310,7 @@ class DataTracker {
     data.domains[domain] += bytes;
     data.totalToday += bytes;
     
-    await StorageManager.saveUsageData(data);
+    scheduleSave(data);
     
     // Check budgets
     await this.checkBudgets(data);
@@ -365,7 +325,8 @@ class DataTracker {
     const lastPercentage = result.lastAlertPercentage || 0;
     const timeSinceLastAlert = now - lastAlert;
     const alertCooldown = 30 * 60 * 1000; // 30 minutes
-    
+
+    if (!settings.dailyBudget || settings.dailyBudget <= 0) return;
     const currentPercentage = Math.floor((data.totalToday / settings.dailyBudget) * 100);
     
     // Only alert if:
@@ -413,16 +374,16 @@ class DataTracker {
   }
   
   static async cleanupTab(tabId) {
-    const data = await StorageManager.getUsageData();
+    const data = await StorageManager.getUsage();
     delete data.tabs[tabId];
-    await StorageManager.saveUsageData(data);
+    scheduleSave(data);
   }
   
   static async resetDaily() {
-    const data = await StorageManager.getUsageData();
+    const data = await StorageManager.getUsage();
     data.totalToday = 0;
     data.tabs = {};
-    await StorageManager.saveUsageData(data);
+    scheduleSave(data);
   }
 }
 
@@ -472,7 +433,18 @@ chrome.tabs.onRemoved.addListener((tabId) => {
 });
 
 // Periodic cleanup and alerts
-chrome.alarms.create('dailyReset', { periodInMinutes: 1440 }); // 24 hours
+// 
+function getMinutesUntilMidnight() {
+  const now = new Date();
+  const midnight = new Date();
+  midnight.setHours(24, 0, 0, 0);
+  return Math.floor((midnight - now) / 60000);
+}
+
+chrome.alarms.create('dailyReset', {
+  delayInMinutes: getMinutesUntilMidnight(),
+  periodInMinutes: 1440
+});// 24 hours
 chrome.alarms.onAlarm.addListener((alarm) => {
   if (alarm.name === 'dailyReset') {
     DataTracker.resetDaily();

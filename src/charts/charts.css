@@ -107,7 +107,8 @@ header h1 {
 /* Charts Grid */
 .charts-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(450px, 600px));
+  justify-content: center;
   gap: 24px;
   margin-bottom: 32px;
 }

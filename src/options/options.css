@@ -90,10 +90,14 @@ main {
   font-weight: 500;
 }
 
-.blocked-list {
-  max-height: 200px;
-  overflow-y: auto;
+.blocked-list::-webkit-scrollbar {
+  width: 6px;
 }
+.blocked-list::-webkit-scrollbar-thumb {
+  background: #d1d5db;
+  border-radius: 4px;
+}
+
 
 .blocked-domain-item {
   display: flex;

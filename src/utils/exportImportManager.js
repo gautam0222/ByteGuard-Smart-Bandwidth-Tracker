@@ -3,7 +3,7 @@
  * Handles data backup, export, and import functionality
  */
 
-class ExportImportManager {
+export class ExportImportManager {
   
   /**
    * Export all usage data to JSON
@@ -330,9 +330,4 @@ class ExportImportManager {
     const i = Math.floor(Math.log(bytes) / Math.log(k));
     return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
   }
-}
-
-// Make available globally
-if (typeof window !== 'undefined') {
-  window.ExportImportManager = ExportImportManager;
 }

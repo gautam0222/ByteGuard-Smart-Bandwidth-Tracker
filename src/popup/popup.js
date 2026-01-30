@@ -6,6 +6,10 @@
 // ============================================
 // Configuration
 // ============================================
+import { StorageManager } from "../utils/storage.js";
+import { formatBytes } from "../utils/helpers.js";
+import { ExportImportManager } from "../utils/exportImportManager.js";
+
 const SITE_CATEGORIES = {
   'youtube.com': 'media',
   'netflix.com': 'media',
@@ -25,53 +29,10 @@ const SITE_CATEGORIES = {
   'stackoverflow.com': 'work'
 };
 
-// ============================================
-// Storage Manager
-// ============================================
-class StorageManager {
-  static async getSettings() {
-    const result = await chrome.storage.local.get('settings');
-    return result.settings || { dailyBudget: 500 * 1024 * 1024 };
-  }
-  
-  static async getUsageData() {
-    const result = await chrome.storage.local.get('usage');
-    return result.usage || { totalToday: 0, tabs: {}, domains: {}, history: [] };
-  }
-  
-  static async getTheme() {
-    const result = await chrome.storage.local.get('theme');
-    return result.theme || 'light';
-  }
-  
-  static async setTheme(theme) {
-    await chrome.storage.local.set({ theme });
-  }
-  
-  static async getAlertsEnabled() {
-    const result = await chrome.storage.local.get('alertsEnabled');
-    return result.alertsEnabled !== false; // Default true
-  }
-  
-  static async setAlertsEnabled(enabled) {
-    await chrome.storage.local.set({ alertsEnabled: enabled });
-  }
-}
 
 // ============================================
 // Helper Functions
 // ============================================
-function formatBytes(bytes, decimals = 1) {
-  if (bytes === 0) return '0 B';
-  
-  const k = 1024;
-  const dm = decimals < 0 ? 0 : decimals;
-  const sizes = ['B', 'KB', 'MB', 'GB', 'TB'];
-  
-  const i = Math.floor(Math.log(bytes) / Math.log(k));
-  
-  return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + ' ' + sizes[i];
-}
 
 function getPercentage(used, budget) {
   if (!budget) return 0;
@@ -217,16 +178,6 @@ async function playNotificationSound(type) {
 // ============================================
 // Network Information
 // ============================================
-async function getUserIP() {
-  try {
-    const response = await fetch('https://api.ipify.org?format=json');
-    const data = await response.json();
-    return data.ip;
-  } catch (error) {
-    console.error('Error fetching IP:', error);
-    return 'Unavailable';
-  }
-}
 
 async function measurePing() {
   try {
@@ -249,29 +200,40 @@ async function testSpeed() {
   speedDisplay.innerHTML = '<span class="loading-skeleton">Testing...</span>';
   
   try {
-    const downloadStart = performance.now();
-    const response = await fetch('https://www.google.com/images/branding/googlelogo/2x/googlelogo_color_272x92dp.png?' + Date.now());
-    await response.blob();
-    const downloadEnd = performance.now();
-    
-    const downloadTime = (downloadEnd - downloadStart) / 1000;
-    const fileSize = 13504;
-    const speedBps = fileSize / downloadTime;
-    const speedMbps = (speedBps * 8) / (1024 * 1024);
-    
-    let speedText = speedMbps > 1 ? 
-      `${speedMbps.toFixed(1)} Mbps` : 
-      `${((speedBps * 8) / 1024).toFixed(0)} Kbps`;
-    
-    speedDisplay.textContent = speedText;
-    
-    showToast('Speed Test Complete', `Your connection: ${speedText}`, 'success');
-    
-  } catch (error) {
-    console.error('Speed test error:', error);
-    speedDisplay.textContent = 'Test failed';
-    showToast('Speed Test Failed', 'Please check your connection', 'error');
-  } finally {
+  speedDisplay.textContent = "Testing...";
+
+  // 5MB test file from Cloudflare (no CORS issues)
+  const testSizeBytes = 5_000_000; // 5MB
+  const testUrl = `https://speed.cloudflare.com/__down?bytes=${testSizeBytes}&cacheBust=${Date.now()}`;
+
+  const startTime = performance.now();
+
+  const response = await fetch(testUrl, { cache: "no-store" });
+  const blob = await response.blob(); // force full download
+
+  const endTime = performance.now();
+
+  const durationSeconds = (endTime - startTime) / 1000;
+
+  const bitsLoaded = blob.size * 8;
+  const speedMbps = (bitsLoaded / durationSeconds) / (1024 * 1024);
+
+  let speedText;
+  if (speedMbps >= 1) {
+    speedText = `${speedMbps.toFixed(2)} Mbps`;
+  } else {
+    speedText = `${(speedMbps * 1024).toFixed(0)} Kbps`;
+  }
+
+  speedDisplay.textContent = speedText;
+
+  showToast("Speed Test Complete", `Your connection: ${speedText}`, "success");
+
+} catch (error) {
+  console.error("Speed test failed:", error);
+  speedDisplay.textContent = "Test Failed";
+  showToast("Speed Test Failed", "Check your connection.", "error");
+} finally {
     speedBtn.disabled = false;
     speedBtn.innerHTML = '<span class="btn-icon">🚀</span><span>Test Speed</span>';
   }
@@ -284,7 +246,7 @@ let currentCategory = 'all';
 
 async function loadData() {
   try {
-    const usage = await StorageManager.getUsageData();
+    const usage = await StorageManager.getUsage();
     const settings = await StorageManager.getSettings();
     
     // Remove loading skeletons
@@ -446,27 +408,62 @@ function renderSites(domains) {
 // ============================================
 // Network Info Updates
 // ============================================
+
 async function updateNetworkInfo() {
-  // Get IP address
-  const ip = await getUserIP();
-  document.getElementById('userIP').textContent = ip;
-  
-  // Get ping
-  const ping = await measurePing();
-  if (ping !== null) {
-    document.getElementById('pingTime').textContent = ping + ' ms';
-    
-    // Color code ping
-    const pingEl = document.getElementById('pingTime');
-    if (ping < 50) {
-      pingEl.style.color = 'var(--success)';
-    } else if (ping < 100) {
-      pingEl.style.color = 'var(--warning)';
-    } else {
-      pingEl.style.color = 'var(--danger)';
+  try {
+    const networkEl = document.getElementById("networkInfo");
+    const pingEl = document.getElementById("pingTime");
+
+    // -------- PING --------
+    const ping = await measurePing();
+    if (ping !== null && pingEl) {
+      pingEl.textContent = ping + " ms";
+
+      if (ping < 50) pingEl.style.color = "var(--success)";
+      else if (ping < 100) pingEl.style.color = "var(--warning)";
+      else pingEl.style.color = "var(--danger)";
     }
+
+    // -------- CONNECTION TYPE --------
+    let connectionType = "Unknown";
+    if (navigator.connection?.effectiveType) {
+      connectionType = navigator.connection.effectiveType.toUpperCase();
+    }
+
+    // -------- BURN RATE --------
+    const result = await chrome.storage.local.get("usage");
+    const usage = result.usage;
+
+    let burnText = "0 MB/day";
+
+    if (usage?.totalToday) {
+      const now = new Date();
+      const hoursSinceMidnight =
+        now.getHours() + now.getMinutes() / 60;
+
+      if (hoursSinceMidnight > 0) {
+        const mbUsed = usage.totalToday / (1024 * 1024);
+        const projectedDaily = (mbUsed / hoursSinceMidnight) * 24;
+
+        if (projectedDaily >= 1024) {
+          burnText = `${(projectedDaily / 1024).toFixed(2)} GB/day`;
+        } else {
+          burnText = `${projectedDaily.toFixed(0)} MB/day`;
+        }
+      }
+    }
+
+    // -------- FINAL DISPLAY --------
+    if (networkEl) {
+      networkEl.textContent = `📶 ${connectionType} • 🔥 ${burnText}`;
+    }
+
+  } catch (error) {
+    console.error("Network info error:", error);
   }
 }
+
+
 
 // ============================================
 // Category Filtering
@@ -484,7 +481,7 @@ function initCategoryTabs() {
       currentCategory = tab.dataset.category;
       
       // Re-render sites
-      const usage = await StorageManager.getUsageData();
+      const usage = await StorageManager.getUsage();
       renderSites(usage.domains);
     });
   });
@@ -564,7 +561,7 @@ async function init() {
   
   // Auto-refresh data every 5 seconds
   setInterval(async () => {
-    const usage = await StorageManager.getUsageData();
+    const usage = await StorageManager.getUsage();
     const settings = await StorageManager.getSettings();
     
     document.getElementById('todayUsage').textContent = formatBytes(usage.totalToday);
