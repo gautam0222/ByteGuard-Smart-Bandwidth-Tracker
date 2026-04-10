@@ -3,212 +3,127 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Bandwidth Budget Tracker</title>
+  <title>ByteGuard</title>
   <link rel="stylesheet" href="popup.css">
 </head>
-<body class="light-theme">
-  <div class="container">
-    <!-- Header -->
-    <div class="header">
-      <div class="header-content">
-        <div class="logo">
-          <div class="logo-icon">📊</div>
-          <h1>Bandwidth Tracker</h1>
-        </div>
-        <div class="header-actions">
-          <button id="themeToggle" class="icon-btn" title="Toggle Dark Mode">
-            <span class="theme-icon">🌙</span>
-          </button>
-          <button id="refreshBtn" class="icon-btn" title="Refresh">
-            <span>🔄</span>
-          </button>
-        </div>
+<body data-theme="light">
+  <main class="shell">
+    <header class="topbar">
+      <div>
+        <p class="eyebrow">ByteGuard</p>
+        <h1>Browser data, at a glance.</h1>
       </div>
-    </div>
-    
-    <!-- Main Stats -->
-    <div class="stats-container">
-      <div class="stat-card primary animate-in">
-        <div class="stat-header">
-          <div class="stat-icon pulse">📈</div>
-          <span class="stat-label">Today's Usage</span>
-        </div>
-        <div class="stat-value" id="todayUsage">
-          <span class="loading-skeleton">Loading...</span>
-        </div>
-        <div class="stat-footer">
-          <span id="usageChange" class="stat-change">--</span>
-        </div>
+      <div class="topbar-actions">
+        <button id="themeToggle" class="icon-button" type="button" title="Change theme">
+          <span id="themeLabel">Light</span>
+        </button>
+        <button id="refreshBtn" class="icon-button" type="button" title="Refresh">
+          Refresh
+        </button>
       </div>
-      
-      <div class="stats-grid">
-        <div class="stat-card animate-in" style="animation-delay: 0.1s">
-          <div class="stat-icon">🎯</div>
-          <div class="stat-content">
-            <span class="stat-label">Budget Left</span>
-            <span class="stat-value small" id="budgetLeft">
-              <span class="loading-skeleton">--</span>
-            </span>
-          </div>
-        </div>
-        
-        <div class="stat-card animate-in" style="animation-delay: 0.2s">
-          <div class="stat-icon">🌐</div>
-          <div class="stat-content">
-            <span class="stat-label">Network</span>
-<span class="stat-value small" id="networkInfo">
-  <span class="loading-skeleton">Loading...</span>
-</span>
-          </div>
-        </div>
-        
-        <div class="stat-card animate-in" style="animation-delay: 0.3s">
-          <div class="stat-icon">⚡</div>
-          <div class="stat-content">
-            <span class="stat-label">Ping</span>
-            <span class="stat-value small" id="pingTime">
-              <span class="loading-skeleton">--</span>
-            </span>
-          </div>
-        </div>
-        
-        <div class="stat-card animate-in" style="animation-delay: 0.4s">
-          <div class="stat-icon">🚀</div>
-          <div class="stat-content">
-            <span class="stat-label">Speed</span>
-            <span class="stat-value small" id="speedDisplay">
-              <span class="loading-skeleton">--</span>
-            </span>
+    </header>
+
+    <section class="hero-card">
+      <div class="hero-copy">
+        <p class="section-kicker">Today</p>
+        <div class="hero-value" id="todayUsage">0 B</div>
+        <p class="hero-note" id="heroNote">Tracking will start as soon as pages finish loading.</p>
+      </div>
+      <div class="hero-meter">
+        <div class="ring">
+          <div class="ring-center">
+            <span id="dailyPercent">0%</span>
+            <small>of budget</small>
           </div>
         </div>
       </div>
-    </div>
-    
-    <!-- Progress Bar -->
-    <div class="progress-section animate-in" style="animation-delay: 0.5s">
-      <div class="progress-header">
-        <span class="progress-label">Budget Usage</span>
-        <span class="progress-percent" id="progressPercent">0%</span>
-      </div>
-      <div class="progress-bar-container">
-        <div class="progress-bar">
-          <div class="progress-fill" id="progressFill"></div>
-          <div class="progress-glow"></div>
+    </section>
+
+    <section class="summary-grid">
+      <article class="summary-card">
+        <p class="label">Remaining today</p>
+        <strong id="budgetLeft">0 B</strong>
+        <span id="budgetSummary">Budget not set</span>
+      </article>
+      <article class="summary-card">
+        <p class="label">This month</p>
+        <strong id="monthlyUsage">0 B</strong>
+        <span id="monthlySummary">No monthly data yet</span>
+      </article>
+      <article class="summary-card">
+        <p class="label">Top site</p>
+        <strong id="topSiteName">None yet</strong>
+        <span id="topSiteUsage">0 B</span>
+      </article>
+    </section>
+
+    <section class="budget-panel">
+      <div class="section-heading">
+        <div>
+          <p class="section-kicker">Budget</p>
+          <h2>Stay ahead of your daily limit</h2>
         </div>
+        <span class="pill" id="statusBadge">On track</span>
       </div>
-      <div class="progress-labels">
-        <span class="progress-start">0</span>
-        <span class="progress-end" id="budgetMax">500 MB</span>
+      <div class="progress-track" aria-hidden="true">
+        <div class="progress-fill" id="progressFill"></div>
       </div>
-    </div>
-    
-    <!-- Quick Controls -->
-    <div class="controls-section">
-      <div class="control-card glass animate-in" style="animation-delay: 0.6s">
-        <div class="control-content">
-          <div class="control-icon-wrapper">
-            <div class="control-icon">🛡️</div>
-          </div>
-          <div class="control-info">
-            <div class="control-title">Low-Data Mode</div>
-            <div class="control-desc" id="lowDataDesc">Save up to 90% bandwidth</div>
-          </div>
+      <div class="progress-meta">
+        <span id="progressCopy">0 B used</span>
+        <span id="budgetMax">0 B budget</span>
+      </div>
+    </section>
+
+    <section class="control-list">
+      <article class="control-card">
+        <div>
+          <p class="section-kicker">Saver</p>
+          <h2>Low-data mode</h2>
+          <p id="lowDataDesc">Block images and media when you need to cut usage fast.</p>
         </div>
-        <label class="toggle-switch">
+        <label class="switch">
           <input type="checkbox" id="lowDataToggle">
-          <span class="toggle-slider">
-            <span class="toggle-thumb"></span>
-          </span>
+          <span class="switch-ui"></span>
         </label>
-      </div>
-      
-      <div class="control-card glass animate-in" style="animation-delay: 0.7s">
-        <div class="control-content">
-          <div class="control-icon-wrapper">
-            <div class="control-icon">🔔</div>
-          </div>
-          <div class="control-info">
-            <div class="control-title">Smart Alerts</div>
-            <div class="control-desc">Sound + notification</div>
-          </div>
+      </article>
+      <article class="control-card">
+        <div>
+          <p class="section-kicker">Alerts</p>
+          <h2>Budget notifications</h2>
+          <p id="alertsDesc">Get a heads-up when you approach your limit.</p>
         </div>
-        <label class="toggle-switch">
-          <input type="checkbox" id="alertsToggle" checked>
-          <span class="toggle-slider">
-            <span class="toggle-thumb"></span>
-          </span>
+        <label class="switch">
+          <input type="checkbox" id="alertsToggle">
+          <span class="switch-ui"></span>
         </label>
-      </div>
-    </div>
-    
-    <!-- Category Tabs -->
-    <div class="category-section animate-in" style="animation-delay: 0.8s">
-      <div class="category-tabs">
-        <button class="category-tab active" data-category="all">
-          <span class="tab-icon">🌐</span>
-          <span class="tab-label">All Sites</span>
-        </button>
-        <button class="category-tab" data-category="social">
-          <span class="tab-icon">👥</span>
-          <span class="tab-label">Social</span>
-        </button>
-        <button class="category-tab" data-category="work">
-          <span class="tab-icon">💼</span>
-          <span class="tab-label">Work</span>
-        </button>
-        <button class="category-tab" data-category="media">
-          <span class="tab-icon">🎬</span>
-          <span class="tab-label">Media</span>
-        </button>
-      </div>
-    </div>
-    
-    <!-- Sites List -->
-    <div class="sites-section">
-      <div class="section-header">
-        <div class="section-title">
-          <h3>Top Data Users</h3>
-          <span class="site-count" id="sitesCount">0 sites</span>
+      </article>
+    </section>
+
+    <section class="sites-panel">
+      <div class="section-heading">
+        <div>
+          <p class="section-kicker">Today</p>
+          <h2>Top data users</h2>
         </div>
-        <button id="speedTestBtn" class="action-btn small">
-          <span class="btn-icon">🚀</span>
-          <span>Test Speed</span>
-        </button>
+        <span class="pill" id="sitesCount">0 sites</span>
       </div>
-      
       <div id="sitesList" class="sites-list">
         <div class="empty-state">
-          <div class="empty-animation">
-            <div class="empty-icon">📊</div>
-            <div class="loading-dots">
-              <span></span><span></span><span></span>
-            </div>
-          </div>
-          <p>No data yet. Start browsing!</p>
+          <strong>No browsing data yet</strong>
+          <p>Open a few sites and ByteGuard will start building your usage picture.</p>
         </div>
       </div>
-    </div>
-    
-    <!-- Navigation -->
-    <div class="nav-section">
-      <button id="settingsBtn" class="nav-btn">
-        <span class="nav-icon">⚙️</span>
-        <span class="nav-label">Settings</span>
-      </button>
-      <button id="chartsBtn" class="nav-btn">
-        <span class="nav-icon">📈</span>
-        <span class="nav-label">Analytics</span>
-      </button>
-      <button id="helpBtn" class="nav-btn">
-        <span class="nav-icon">❓</span>
-        <span class="nav-label">Help</span>
-      </button>
-    </div>
-  </div>
-  
-  <!-- Toast Notifications -->
-  <div id="toastContainer" class="toast-container"></div>
-  
+    </section>
+
+    <nav class="footer-nav">
+      <button id="chartsBtn" class="footer-button" type="button">Analytics</button>
+      <button id="settingsBtn" class="footer-button" type="button">Settings</button>
+      <button id="helpBtn" class="footer-button" type="button">Help</button>
+    </nav>
+  </main>
+
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+
   <script type="module" src="popup.js"></script>
 </body>
 </html>

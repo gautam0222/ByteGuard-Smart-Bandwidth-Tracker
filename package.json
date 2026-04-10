@@ -2,15 +2,15 @@
   "name": "bandwidth-budget-tracker",
   "version": "0.1.0",
   "description": "Privacy-first browser extension to monitor and manage bandwidth usage",
-  "main": "src/background/service-worker.js",
+  "type": "module",
+  "main": "ByteGuard-bandwidth-budget-tracker/background/service-worker.js",
   "scripts": {
-    "build": "node config/build.js",
-    "watch": "node config/build.js --watch",
-    "lint": "eslint src/**/*.js",
-    "format": "prettier --write \"src/**/*.{js,css,html}\"",
-    "test": "jest",
-    "pack:chrome": "node config/pack.js chrome",
-    "pack:firefox": "node config/pack.js firefox"
+    "build": "node config/build.cjs",
+    "watch": "node config/build.cjs",
+    "lint": "eslint \"ByteGuard-bandwidth-budget-tracker/**/*.js\" \"config/**/*.cjs\" \"tests/**/*.js\"",
+    "format": "prettier --write \"ByteGuard-bandwidth-budget-tracker/**/*.{js,css,html,json}\" \"docs/**/*.{html,md}\" \"config/**/*.cjs\"",
+    "test": "node --experimental-vm-modules ./node_modules/jest/bin/jest.js",
+    "pack:chrome": "npm run build && node config/pack.cjs"
   },
   "keywords": [
     "bandwidth",
@@ -19,7 +19,7 @@
     "chrome-extension",
     "privacy"
   ],
-  "author": "Your Name",
+  "author": "Gautam Sukhani",
   "license": "MIT",
   "devDependencies": {
     "eslint": "^9.39.2",

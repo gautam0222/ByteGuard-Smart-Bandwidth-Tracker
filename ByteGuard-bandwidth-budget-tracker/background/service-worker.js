@@ -1,486 +1,281 @@
 /**
- * Bandwidth Budget Tracker - Service Worker
- * Handles network monitoring and data tracking
+ * ByteGuard service worker
+ * Tracks bandwidth, manages budgets, and applies optional data-saving rules.
  */
+
 import { StorageManager } from "../utils/storage.js";
-import { formatBytes } from "../utils/helpers.js";
-import { ExportImportManager } from "../utils/exportImportManager.js";
+import { formatBytes, getDomain, sanitizeDomain } from "../utils/helpers.js";
+import {
+  LOW_DATA_RULE_IDS,
+  MANAGED_RULE_MAX,
+  buildManagedRules,
+  getAlertLevel,
+  parseContentLength
+} from "./backgroundUtils.js";
 
-console.log('🚀 Bandwidth Budget Tracker service worker started');
-let saveTimeout = null;
-let pendingData = null;
-
-function scheduleSave(data) {
-  pendingData = data;
-
-  if (saveTimeout) return;
-
-  saveTimeout = setTimeout(async () => {
-    await StorageManager.saveUsage(pendingData);
-    saveTimeout = null;
-    pendingData = null;
-  }, 2000);
-}
-// ============================================
-// Low-Data Mode Manager
-// ============================================
-class LowDataManager {
-  static RULE_ID_BASE = 1000;
-  static isEnabled = false;
-  static blockedDomains = new Set();
-  static autoEnableThreshold = 90; // Auto-enable at 90% budget
-  
-  static async init() {
-    console.log('🔧 Initializing LowDataManager...');
-    const result = await chrome.storage.local.get(['lowDataMode', 'blockedDomains', 'autoLowData']);
-    this.isEnabled = result.lowDataMode || false;
-    this.blockedDomains = new Set(result.blockedDomains || []);
-    
-    console.log('📊 Current state:', { 
-      isEnabled: this.isEnabled, 
-      blockedDomains: Array.from(this.blockedDomains) 
-    });
-    
-    if (this.isEnabled) {
-      console.log('▶️ Re-enabling low-data mode from saved state...');
-      // Re-apply rules on startup without notification
-      const rules = [
-        {
-          id: this.RULE_ID_BASE + 1,
-          priority: 1,
-          action: { type: 'block' },
-          condition: {
-            urlFilter: '*',
-            resourceTypes: ['image']
-          }
-        },
-        {
-          id: this.RULE_ID_BASE + 2,
-          priority: 1,
-          action: { type: 'block' },
-          condition: {
-            urlFilter: '*',
-            resourceTypes: ['media']
-          }
-        }
-      ];
-      
-      try {
-        const existingRules = await chrome.declarativeNetRequest.getDynamicRules();
-        const ruleIds = existingRules.map(rule => rule.id);
-        
-        await chrome.declarativeNetRequest.updateDynamicRules({
-          removeRuleIds: ruleIds,
-          addRules: rules
-        });
-        
-        console.log('✅ Low-data mode rules restored');
-      } catch (error) {
-        console.error('❌ Error restoring low-data mode:', error);
-      }
-    }
-  }
-  
-  static async enableMode() {
-    this.isEnabled = true;
-    await chrome.storage.local.set({ lowDataMode: true });
-    
-    const rules = [
-      {
-        id: this.RULE_ID_BASE + 1,
-        priority: 1,
-        action: { type: 'block' },
-        condition: {
-          urlFilter: '*',
-          resourceTypes: ['image']
-        }
-      },
-      {
-        id: this.RULE_ID_BASE + 2,
-        priority: 1,
-        action: { type: 'block' },
-        condition: {
-          urlFilter: '*',
-          resourceTypes: ['media']
-        }
-      }
-    ];
-    
-    try {
-      const existingRules = await chrome.declarativeNetRequest.getDynamicRules();
-      const ruleIds = existingRules.map(rule => rule.id);
-      
-      await chrome.declarativeNetRequest.updateDynamicRules({
-        removeRuleIds: ruleIds,
-        addRules: rules
-      });
-      
-      console.log('✅ Low-data mode enabled');
-      
-      chrome.notifications.create({
-        type: 'basic',
-        iconUrl: '../assets/icons/icon-128.png',
-        title: 'Low-Data Mode Enabled',
-        message: 'Images and videos are now blocked to save bandwidth.'
-      });
-    } catch (error) {
-      console.error('Error enabling low-data mode:', error);
-    }
-  }
-  
-  static async disableMode() {
-    this.isEnabled = false;
-    await chrome.storage.local.set({ lowDataMode: false });
-    
-    try {
-      const existingRules = await chrome.declarativeNetRequest.getDynamicRules();
-      const ruleIds = existingRules.map(rule => rule.id);
-      
-      await chrome.declarativeNetRequest.updateDynamicRules({
-        removeRuleIds: ruleIds
-      });
-      
-      console.log('✅ Low-data mode disabled');
-      
-      chrome.notifications.create({
-        type: 'basic',
-        iconUrl: '../assets/icons/icon-128.png',
-        title: 'Low-Data Mode Disabled',
-        message: 'All content is now loading normally.'
-      });
-    } catch (error) {
-      console.error('Error disabling low-data mode:', error);
-    }
-  }
-  
-  static async toggle() {
-    console.log('🔄 Toggling low-data mode. Current state:', this.isEnabled);
-    
-    if (this.isEnabled) {
-      await this.disableMode();
-    } else {
-      await this.enableMode();
-    }
-    
-    console.log('✅ Toggle complete. New state:', this.isEnabled);
-    return this.isEnabled;
-  }
-  
-  static async checkAutoEnable(usage, budget) {
-    const percentage = (usage / budget) * 100;
-    const result = await chrome.storage.local.get('autoLowData');
-    const autoEnabled = result.autoLowData !== false; // Default true
-    
-    if (autoEnabled && percentage >= this.autoEnableThreshold && !this.isEnabled) {
-      console.log('🚨 Budget threshold reached - auto-enabling low-data mode');
-      await this.enableMode();
-      
-      chrome.notifications.create({
-        type: 'basic',
-        iconUrl: '../assets/icons/icon-128.png',
-        title: 'Auto Low-Data Mode Activated',
-        message: `You've reached ${this.autoEnableThreshold}% of your budget. Low-data mode is now ON.`,
-        priority: 2
-      });
-    }
-  }
-  
-  static async blockDomain(domain) {
-    this.blockedDomains.add(domain);
-    await chrome.storage.local.set({ blockedDomains: Array.from(this.blockedDomains) });
-    
-    const ruleId = this.RULE_ID_BASE + 100 + this.blockedDomains.size;
-    
-    try {
-      await chrome.declarativeNetRequest.updateDynamicRules({
-        addRules: [{
-          id: ruleId,
-          priority: 3, // Higher priority than low-data mode
-          action: { type: 'block' },
-          condition: {
-            requestDomains: [domain],
-            resourceTypes: [
-              'main_frame',
-              'sub_frame', 
-              'stylesheet',
-              'script',
-              'image',
-              'font',
-              'object',
-              'xmlhttprequest',
-              'ping',
-              'csp_report',
-              'media',
-              'websocket',
-              'webtransport',
-              'webbundle',
-              'other'
-            ]
-          }
-        }]
-      });
-      
-      console.log(`✅ Blocked domain: ${domain} with rule ID ${ruleId}`);
-      
-      // Verify the rule was created
-      const rules = await chrome.declarativeNetRequest.getDynamicRules();
-      console.log('Current blocking rules:', rules);
-      
-    } catch (error) {
-      console.error('Error blocking domain:', error);
-      throw error; // Propagate error so UI can show it
-    }
-  }
-  
-  static async unblockDomain(domain) {
-    this.blockedDomains.delete(domain);
-    await chrome.storage.local.set({ blockedDomains: Array.from(this.blockedDomains) });
-  }
-  
-  static async getStatus() {
-    return {
-      enabled: this.isEnabled,
-      blockedDomains: Array.from(this.blockedDomains)
-    };
-  }
-}
-
-// ============================================
-// Data Tracker
-// ============================================
-class DataTracker {
-  static async processRequest(details) {
-    const { tabId, url, responseHeaders, fromCache } = details;
-    
-    // Ignore invalid tabs
-    if (tabId === -1 || !url) return;
-    
-    // Calculate size
-    let size = 0;
-    if (!fromCache) {
-      size = this.calculateSize(responseHeaders);
-    }
-    
-    // Extract domain
-    try {
-      const domain = new URL(url).hostname;
-      
-      // Update storage
-      await this.updateUsage(tabId, domain, size);
-    } catch (e) {
-      console.error('Error processing request:', e);
-    }
-  }
-  
-  static calculateSize(headers) {
-    if (!headers) return 0;
-    
-    const contentLength = headers.find(h => 
-      h.name.toLowerCase() === 'content-length'
-    );
-    
-    return contentLength ? parseInt(contentLength.value, 10) : 0;
-  }
-  
-  static async updateUsage(tabId, domain, bytes) {
-    const hour = new Date().getHours();
-    const data = await StorageManager.getUsage();
-
-    if (!data.hourly) data.hourly = {};
-    if (!data.hourly[hour]) data.hourly[hour] = 0;
-
-    data.hourly[hour] += bytes;
-
-    
-    
-    // Initialize if needed
-    if (!data.tabs[tabId]) {
-      data.tabs[tabId] = { total: 0, domains: {} };
-    }
-    if (!data.tabs[tabId].domains[domain]) {
-      data.tabs[tabId].domains[domain] = 0;
-    }
-    if (!data.domains[domain]) {
-      data.domains[domain] = 0;
-    }
-    
-    // Update
-    data.tabs[tabId].total += bytes;
-    data.tabs[tabId].domains[domain] += bytes;
-    data.domains[domain] += bytes;
-    data.totalToday += bytes;
-    
-    scheduleSave(data);
-    
-    // Check budgets
-    await this.checkBudgets(data);
-  }
-  
-  static async checkBudgets(data) {
-    const settings = await StorageManager.getSettings();
-    const result = await chrome.storage.local.get(['lastAlertTime', 'lastAlertPercentage']);
-    
-    const now = Date.now();
-    const lastAlert = result.lastAlertTime || 0;
-    const lastPercentage = result.lastAlertPercentage || 0;
-    const timeSinceLastAlert = now - lastAlert;
-    const alertCooldown = 30 * 60 * 1000; // 30 minutes
-
-    if (!settings.dailyBudget || settings.dailyBudget <= 0) return;
-    const currentPercentage = Math.floor((data.totalToday / settings.dailyBudget) * 100);
-    
-    // Only alert if:
-    // 1. At least 30 minutes since last alert, OR
-    // 2. We've crossed a new threshold (80%, 90%, 100%)
-    const shouldAlert = (
-      (currentPercentage >= 80 && lastPercentage < 80) ||
-      (currentPercentage >= 90 && lastPercentage < 90) ||
-      (currentPercentage >= 100 && lastPercentage < 100) ||
-      (timeSinceLastAlert > alertCooldown && currentPercentage >= 90)
-    );
-    
-    if (settings.dailyBudget && shouldAlert) {
-      let message = '';
-      let title = 'Data Budget Alert';
-      
-      if (currentPercentage >= 100) {
-        title = '🚨 Budget Exceeded!';
-        message = `You've used ${formatBytes(data.totalToday)} (${currentPercentage}% of budget). Consider enabling Low-Data Mode!`;
-      } else if (currentPercentage >= 90) {
-        title = '⚠️ Approaching Limit';
-        message = `You've used ${currentPercentage}% of your daily budget (${formatBytes(data.totalToday)} / ${formatBytes(settings.dailyBudget)})`;
-      } else if (currentPercentage >= 80) {
-        title = '📊 Budget Warning';
-        message = `You've used ${currentPercentage}% of your daily budget. You have ${formatBytes(settings.dailyBudget - data.totalToday)} remaining.`;
-      }
-      
-      chrome.notifications.create({
-        type: 'basic',
-        iconUrl: '../assets/icons/icon-128.png',
-        title: title,
-        message: message,
-        priority: 2
-      });
-      
-      // Update last alert time and percentage
-      await chrome.storage.local.set({ 
-        lastAlertTime: now,
-        lastAlertPercentage: currentPercentage
-      });
-      
-      // Check if we should auto-enable low-data mode
-      await LowDataManager.checkAutoEnable(data.totalToday, settings.dailyBudget);
-    }
-  }
-  
-  static async cleanupTab(tabId) {
-    const data = await StorageManager.getUsage();
-    delete data.tabs[tabId];
-    scheduleSave(data);
-  }
-  
-  static async resetDaily() {
-    const data = await StorageManager.getUsage();
-    data.totalToday = 0;
-    data.tabs = {};
-    scheduleSave(data);
-  }
-}
-
-// ============================================
-// Event Listeners
-// ============================================
-
-// Initialize on install
-chrome.runtime.onInstalled.addListener(async (details) => {
-  console.log('Extension installed/updated:', details.reason);
-  
-  if (details.reason === 'install') {
-    // Set default settings
-    await StorageManager.setDefaults();
-    
-    // Open onboarding page
-    chrome.tabs.create({ 
-      url: chrome.runtime.getURL('onboarding/welcome.html') 
-    });
-    
-    // Show welcome notification
-    chrome.notifications.create({
-      type: 'basic',
-      iconUrl: '../assets/icons/icon-128.png',
-      title: 'Welcome to Bandwidth Budget Tracker!',
-      message: 'Thanks for installing! We\'ve opened a quick setup guide.'
-    });
-  }
-  
-  if (details.reason === 'update') {
-    console.log('Extension updated to version:', chrome.runtime.getManifest().version);
-  }
-});
-
-// Listen for network requests
-chrome.webRequest.onCompleted.addListener(
-  (details) => {
-    DataTracker.processRequest(details);
-  },
-  { urls: ['<all_urls>'] },
-  ['responseHeaders']
-);
-
-// Handle tab closures
-chrome.tabs.onRemoved.addListener((tabId) => {
-  DataTracker.cleanupTab(tabId);
-});
-
-// Periodic cleanup and alerts
-// 
 function getMinutesUntilMidnight() {
   const now = new Date();
-  const midnight = new Date();
-  midnight.setHours(24, 0, 0, 0);
-  return Math.floor((midnight - now) / 60000);
+  const nextMidnight = new Date(now);
+  nextMidnight.setHours(24, 0, 0, 0);
+  return Math.max(1, Math.ceil((nextMidnight - now) / 60000));
 }
 
-chrome.alarms.create('dailyReset', {
-  delayInMinutes: getMinutesUntilMidnight(),
-  periodInMinutes: 1440
-});// 24 hours
-chrome.alarms.onAlarm.addListener((alarm) => {
-  if (alarm.name === 'dailyReset') {
-    DataTracker.resetDaily();
+async function ensureDailyAlarm() {
+  await chrome.alarms.create("dailyMaintenance", {
+    delayInMinutes: getMinutesUntilMidnight(),
+    periodInMinutes: 1440
+  });
+}
+
+async function canUsePermission(permission) {
+  return chrome.permissions.contains({ permissions: [permission] });
+}
+
+async function notify(title, message, priority = 0) {
+  const hasPermission = await canUsePermission("notifications");
+  if (!hasPermission) {
+    return;
+  }
+
+  await chrome.notifications.create({
+    type: "basic",
+    iconUrl: "assets/icons/icon-128.png",
+    title,
+    message,
+    priority
+  });
+}
+
+async function getProtectionState() {
+  const result = await chrome.storage.local.get(["lowDataMode", "blockedDomains"]);
+  return {
+    lowDataMode: Boolean(result.lowDataMode),
+    blockedDomains: Array.isArray(result.blockedDomains)
+      ? result.blockedDomains.map((domain) => sanitizeDomain(domain)).filter(Boolean)
+      : []
+  };
+}
+
+async function syncManagedRules() {
+  const state = await getProtectionState();
+  const desiredRules = buildManagedRules(state);
+  const existingRules = await chrome.declarativeNetRequest.getDynamicRules();
+  const managedRuleIds = existingRules
+    .map((rule) => rule.id)
+    .filter((id) => id >= LOW_DATA_RULE_IDS[0] && id <= MANAGED_RULE_MAX);
+
+  await chrome.declarativeNetRequest.updateDynamicRules({
+    removeRuleIds: managedRuleIds,
+    addRules: desiredRules
+  });
+
+  return {
+    enabled: state.lowDataMode,
+    blockedDomains: state.blockedDomains
+  };
+}
+
+async function setLowDataMode(enabled) {
+  await chrome.storage.local.set({ lowDataMode: Boolean(enabled) });
+  const status = await syncManagedRules();
+  return status.enabled;
+}
+
+async function toggleLowDataMode() {
+  const state = await getProtectionState();
+  return setLowDataMode(!state.lowDataMode);
+}
+
+async function blockDomain(rawDomain) {
+  const domain = sanitizeDomain(rawDomain);
+  if (!domain) {
+    throw new Error("Please enter a valid domain.");
+  }
+
+  const state = await getProtectionState();
+  const blockedDomains = Array.from(new Set([...state.blockedDomains, domain])).sort();
+  await chrome.storage.local.set({ blockedDomains });
+  await syncManagedRules();
+
+  return blockedDomains;
+}
+
+async function unblockDomain(rawDomain) {
+  const domain = sanitizeDomain(rawDomain);
+  const state = await getProtectionState();
+  const blockedDomains = state.blockedDomains.filter((item) => item !== domain);
+  await chrome.storage.local.set({ blockedDomains });
+  await syncManagedRules();
+
+  return blockedDomains;
+}
+
+async function getDashboardData() {
+  const [usage, settings, status] = await Promise.all([
+    StorageManager.getUsage(),
+    StorageManager.getSettings(),
+    getProtectionState()
+  ]);
+
+  return {
+    usage,
+    settings,
+    lowData: {
+      enabled: status.lowDataMode,
+      blockedDomains: status.blockedDomains
+    }
+  };
+}
+
+async function maybeAlertForBudget(usage, settings) {
+  if (!settings.alertsEnabled || settings.dailyBudget <= 0) {
+    return;
+  }
+
+  const percent = Math.floor((usage.totalToday / settings.dailyBudget) * 100);
+  const threshold = settings.alertThreshold;
+  const alertLevel = getAlertLevel(percent, threshold);
+
+  if (!alertLevel) {
+    return;
+  }
+
+  const today = StorageManager.getTodayKey();
+  const result = await chrome.storage.local.get("alertState");
+  const alertState = result.alertState || {};
+
+  if (alertState.day === today && alertState.level >= alertLevel) {
+    return;
+  }
+
+  const message =
+    alertLevel >= 100
+      ? `You've used ${formatBytes(usage.totalToday)} today, which is over your daily budget.`
+      : `You've used ${percent}% of today's budget (${formatBytes(usage.totalToday)} of ${formatBytes(settings.dailyBudget)}).`;
+
+  await notify(alertLevel >= 100 ? "Daily budget exceeded" : "Approaching your budget", message, 2);
+  await chrome.storage.local.set({
+    alertState: {
+      day: today,
+      level: alertLevel
+    }
+  });
+
+  if (settings.autoLowData && percent >= threshold) {
+    const state = await getProtectionState();
+    if (!state.lowDataMode) {
+      await setLowDataMode(true);
+      await notify("Low-data mode enabled", "ByteGuard turned on low-data mode to help you stay under budget.");
+    }
+  }
+}
+
+async function processRequest(details) {
+  const { tabId, url, responseHeaders, fromCache } = details;
+
+  if (tabId < 0 || !url || fromCache) {
+    return;
+  }
+
+  const domain = getDomain(url);
+  if (!domain || domain === "unknown") {
+    return;
+  }
+
+  const bytes = parseContentLength(responseHeaders);
+
+  if (!Number.isFinite(bytes) || bytes <= 0) {
+    return;
+  }
+
+  const usage = await StorageManager.recordUsage({ tabId, domain, bytes });
+  const settings = await StorageManager.getSettings();
+  await maybeAlertForBudget(usage, settings);
+}
+
+chrome.runtime.onInstalled.addListener(async ({ reason }) => {
+  await StorageManager.initialize();
+  await ensureDailyAlarm();
+  await syncManagedRules();
+
+  if (reason === "install") {
+    await notify("Welcome to ByteGuard", "Set your daily budget and start tracking your browsing data.");
+    await chrome.tabs.create({
+      url: chrome.runtime.getURL("onboarding/welcome.html")
+    });
   }
 });
 
-// Handle messages from popup/options
+chrome.runtime.onStartup.addListener(async () => {
+  await StorageManager.initialize();
+  await ensureDailyAlarm();
+  await syncManagedRules();
+});
+
+chrome.alarms.onAlarm.addListener(async (alarm) => {
+  if (alarm.name !== "dailyMaintenance") {
+    return;
+  }
+
+  await StorageManager.archiveDailyUsage();
+  await syncManagedRules();
+});
+
+chrome.webRequest.onCompleted.addListener(
+  (details) => {
+    processRequest(details).catch((error) => {
+      console.error("Failed to process request", error);
+    });
+  },
+  { urls: ["<all_urls>"] },
+  ["responseHeaders"]
+);
+
+chrome.tabs.onRemoved.addListener((tabId) => {
+  StorageManager.removeTab(tabId).catch((error) => {
+    console.error("Failed to clean up tab", error);
+  });
+});
+
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
-  if (request.action === 'toggleLowDataMode') {
-    LowDataManager.toggle().then(enabled => {
-      sendResponse({ enabled });
-    });
-    return true; // Keep channel open for async response
+  const handlers = {
+    getDashboardData: () => getDashboardData(),
+    getLowDataStatus: async () => {
+      const state = await getProtectionState();
+      return {
+        enabled: state.lowDataMode,
+        blockedDomains: state.blockedDomains
+      };
+    },
+    toggleLowDataMode: async () => ({ enabled: await toggleLowDataMode() }),
+    setLowDataMode: async () => ({ enabled: await setLowDataMode(request.enabled) }),
+    blockDomain: async () => ({ success: true, blockedDomains: await blockDomain(request.domain) }),
+    unblockDomain: async () => ({ success: true, blockedDomains: await unblockDomain(request.domain) }),
+    syncProtectionRules: async () => ({ success: true, status: await syncManagedRules() }),
+    refreshUsage: async () => ({ usage: await StorageManager.getUsage() })
+  };
+
+  const handler = handlers[request.action];
+  if (!handler) {
+    return false;
   }
-  
-  if (request.action === 'getLowDataStatus') {
-    LowDataManager.getStatus().then(status => {
-      sendResponse(status);
+
+  handler()
+    .then((response) => sendResponse(response))
+    .catch((error) => {
+      console.error("Message handler failed", error);
+      sendResponse({
+        success: false,
+        error: error.message || "Something went wrong."
+      });
     });
-    return true;
-  }
-  
-  if (request.action === 'blockDomain') {
-    LowDataManager.blockDomain(request.domain).then(() => {
-      sendResponse({ success: true });
-    });
-    return true;
-  }
-  
-  if (request.action === 'unblockDomain') {
-    LowDataManager.unblockDomain(request.domain).then(() => {
-      sendResponse({ success: true });
-    });
-    return true;
-  }
+
+  return true;
 });
 
-// Initialize low-data manager on startup
-LowDataManager.init();
+StorageManager.initialize()
+  .then(() => ensureDailyAlarm())
+  .then(() => syncManagedRules())
+  .catch((error) => {
+    console.error("ByteGuard failed to initialize", error);
+  });
