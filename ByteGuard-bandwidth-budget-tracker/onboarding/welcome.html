@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Welcome to ByteGuard</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+    
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: #0f172a;
+      min-height: 100vh;
+      display: flex; align-items: center; justify-content: center;
+      padding: 20px;
+      -webkit-font-smoothing: antialiased;
+    }
+    
+    .container {
+      max-width: 800px; width: 100%;
+      background: #1e293b;
+      border-radius: 20px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+      overflow: hidden;
+      border: 1px solid #334155;
+    }
+    
+    .header {
+      background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
+      color: white; padding: 40px; text-align: center;
+      position: relative; overflow: hidden;
+    }
+    .header::before {
+      content: ''; position: absolute; top: -50%; right: -25%;
+      width: 300px; height: 300px;
+      background: radial-gradient(circle, rgba(255,255,255,0.08), transparent 70%);
+    }
+    .header h1 { font-size: 32px; font-weight: 800; margin-bottom: 8px; position: relative; }
+    .header p { font-size: 16px; opacity: 0.85; position: relative; }
+    
+    .shield-icon {
+      width: 64px; height: 64px; margin: 0 auto 16px;
+      background: rgba(255,255,255,0.15); border-radius: 16px;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .shield-icon svg { width: 32px; height: 32px; }
+    
+    .steps { padding: 32px; }
+    
+    .step {
+      display: flex; gap: 16px; margin-bottom: 24px;
+      padding: 18px; background: #0f172a;
+      border-radius: 12px; border-left: 3px solid #6366f1;
+      transition: transform 0.2s;
+    }
+    .step:hover { transform: translateX(4px); }
+    
+    .step-num {
+      flex-shrink: 0; width: 36px; height: 36px;
+      background: linear-gradient(135deg, #6366f1, #4f46e5);
+      color: white; border-radius: 10px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 16px; font-weight: 700;
+    }
+    .step-content h3 { font-size: 16px; color: #f1f5f9; margin-bottom: 4px; }
+    .step-content p { color: #94a3b8; font-size: 13px; line-height: 1.6; }
+    
+    .features { padding: 0 32px 32px; }
+    .features h2 { text-align: center; font-size: 22px; color: #f1f5f9; margin-bottom: 20px; }
+    
+    .feature-grid {
+      display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px;
+    }
+    .feature-card {
+      padding: 20px; background: #0f172a;
+      border: 1px solid #334155; border-radius: 12px;
+      text-align: center; transition: all 0.2s;
+    }
+    .feature-card:hover { border-color: #6366f1; transform: translateY(-2px); }
+    .feature-card svg { width: 32px; height: 32px; color: #6366f1; margin-bottom: 10px; }
+    .feature-card h4 { font-size: 14px; color: #f1f5f9; margin-bottom: 4px; }
+    .feature-card p { font-size: 12px; color: #94a3b8; line-height: 1.5; }
+    
+    .tip {
+      margin: 0 32px 24px; padding: 16px;
+      background: rgba(251,191,36,0.08);
+      border-left: 3px solid #fbbf24;
+      border-radius: 8px;
+    }
+    .tip strong { color: #fbbf24; display: block; margin-bottom: 4px; font-size: 13px; }
+    .tip p { color: #94a3b8; font-size: 13px; line-height: 1.6; }
+    
+    .actions {
+      padding: 24px 32px; background: #0f172a;
+      display: flex; gap: 12px; justify-content: center;
+      border-top: 1px solid #334155;
+    }
+    .btn {
+      padding: 12px 28px; border-radius: 8px; font-size: 14px;
+      font-weight: 600; border: none; cursor: pointer;
+      font-family: inherit; transition: all 0.2s;
+    }
+    .btn-primary {
+      background: linear-gradient(135deg, #6366f1, #4f46e5);
+      color: white;
+    }
+    .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(99,102,241,0.3); }
+    .btn-secondary {
+      background: transparent; color: #6366f1;
+      border: 1px solid #6366f1;
+    }
+    .btn-secondary:hover { background: #6366f1; color: white; }
+    
+    @media (max-width: 600px) {
+      .feature-grid { grid-template-columns: 1fr; }
+      .header h1 { font-size: 24px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <div class="shield-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+      </div>
+      <h1>Welcome to ByteGuard!</h1>
+      <p>Take control of your bandwidth in just a few steps</p>
+    </div>
+
+    <div class="steps">
+      <div class="step">
+        <div class="step-num">1</div>
+        <div class="step-content">
+          <h3>Automatic Tracking</h3>
+          <p>ByteGuard is already monitoring your bandwidth. Browse normally — we track everything in the background.</p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">2</div>
+        <div class="step-content">
+          <h3>Set Your Budget</h3>
+          <p>Click the extension icon → Settings → Set daily and monthly data budgets. We'll alert you at your limits.</p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">3</div>
+        <div class="step-content">
+          <h3>Low-Data Mode</h3>
+          <p>Toggle Low-Data Mode in the popup to block images and videos. Save up to 90% bandwidth instantly.</p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">4</div>
+        <div class="step-content">
+          <h3>View Analytics</h3>
+          <p>Click Analytics to see usage trends, top sites, hourly patterns, and smart insights.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="features">
+      <h2>Key Features</h2>
+      <div class="feature-grid">
+        <div class="feature-card">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+          <h4>Real-Time Tracking</h4>
+          <p>Per-tab and per-site bandwidth monitoring</p>
+        </div>
+        <div class="feature-card">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/></svg>
+          <h4>Smart Budgets</h4>
+          <p>Daily and monthly limits with auto-alerts</p>
+        </div>
+        <div class="feature-card">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+          <h4>Low-Data Mode</h4>
+          <p>Block media to save 70-90% bandwidth</p>
+        </div>
+        <div class="feature-card">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+          <h4>Beautiful Charts</h4>
+          <p>Interactive analytics and insights</p>
+        </div>
+        <div class="feature-card">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg>
+          <h4>Site Blocking</h4>
+          <p>One-click block for data-heavy sites</p>
+        </div>
+        <div class="feature-card">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          <h4>Export & Backup</h4>
+          <p>JSON, CSV, and HTML reports</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="tip">
+      <strong>💡 Pro Tip</strong>
+      <p>Enable "Auto Low-Data Mode" in Settings to automatically block media when you hit 90% of your budget!</p>
+    </div>
+
+    <div class="actions">
+      <button id="getStartedBtn" class="btn btn-primary">Get Started</button>
+      <button id="settingsBtn" class="btn btn-secondary">Configure Settings</button>
+    </div>
+  </div>
+
+  <script>
+    document.getElementById('getStartedBtn').addEventListener('click', () => {
+      chrome.storage.local.set({ onboardingComplete: true });
+      window.close();
+    });
+    document.getElementById('settingsBtn').addEventListener('click', () => {
+      chrome.storage.local.set({ onboardingComplete: true });
+      chrome.runtime.openOptionsPage();
+      window.close();
+    });
+  </script>
+</body>
+</html>

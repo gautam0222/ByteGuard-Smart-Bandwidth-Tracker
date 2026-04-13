@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Help — ByteGuard</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+    
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: #0f172a; color: #f1f5f9;
+      padding: 20px; -webkit-font-smoothing: antialiased;
+    }
+    
+    .help-container { max-width: 900px; margin: 0 auto; }
+    
+    .help-header { text-align: center; margin-bottom: 36px; }
+    .help-header h1 {
+      font-size: 32px; font-weight: 800;
+      background: linear-gradient(135deg, #6366f1, #4f46e5);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+      margin-bottom: 8px;
+    }
+    .help-header p { color: #94a3b8; font-size: 16px; }
+    
+    .search-box { max-width: 500px; margin: 20px auto; position: relative; }
+    .search-box input {
+      width: 100%; padding: 14px 44px 14px 16px;
+      background: #1e293b; border: 1px solid #334155;
+      border-radius: 10px; font-size: 14px; color: #f1f5f9;
+      font-family: inherit; transition: border-color 0.2s;
+    }
+    .search-box input:focus { outline: none; border-color: #6366f1; }
+    .search-box input::placeholder { color: #64748b; }
+    .search-icon {
+      position: absolute; right: 14px; top: 50%; transform: translateY(-50%);
+      color: #64748b;
+    }
+    .search-icon svg { width: 18px; height: 18px; }
+    
+    .quick-links { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 32px; }
+    .quick-link {
+      display: flex; align-items: center; gap: 12px;
+      padding: 16px; background: #1e293b;
+      border: 1px solid #334155; border-radius: 12px;
+      text-decoration: none; color: #f1f5f9;
+      transition: all 0.2s;
+    }
+    .quick-link:hover { border-color: #6366f1; transform: translateY(-2px); }
+    .quick-link svg { width: 24px; height: 24px; color: #6366f1; flex-shrink: 0; }
+    .quick-link h4 { font-size: 13px; font-weight: 600; }
+    .quick-link p { font-size: 11px; color: #64748b; margin-top: 2px; }
+    
+    .help-section {
+      background: #1e293b; border-radius: 12px;
+      padding: 28px; margin-bottom: 20px;
+      border: 1px solid #334155;
+    }
+    .help-section h2 {
+      font-size: 20px; font-weight: 700; color: #f1f5f9;
+      margin-bottom: 16px; display: flex; align-items: center; gap: 10px;
+    }
+    .help-section h2 svg { width: 22px; height: 22px; color: #6366f1; }
+    .help-section h3 { font-size: 16px; color: #e2e8f0; margin: 20px 0 8px; }
+    .help-section p { color: #94a3b8; line-height: 1.7; margin-bottom: 12px; font-size: 14px; }
+    .help-section ul { margin-left: 20px; margin-bottom: 12px; }
+    .help-section li { color: #94a3b8; line-height: 1.7; margin-bottom: 6px; font-size: 14px; }
+    .help-section li strong { color: #e2e8f0; }
+    
+    .tip-box {
+      background: rgba(251,191,36,0.08); border-left: 3px solid #fbbf24;
+      padding: 14px; border-radius: 8px; margin: 14px 0;
+    }
+    .tip-box strong { color: #fbbf24; font-size: 13px; }
+    .tip-box p { color: #94a3b8; margin: 0; }
+    
+    .warning-box {
+      background: rgba(248,113,113,0.08); border-left: 3px solid #f87171;
+      padding: 14px; border-radius: 8px; margin: 14px 0;
+    }
+    .warning-box strong { color: #f87171; font-size: 13px; }
+    
+    .faq-item { margin-bottom: 20px; padding-bottom: 20px; border-bottom: 1px solid #334155; }
+    .faq-item:last-child { border-bottom: none; }
+    .faq-question { font-size: 15px; font-weight: 600; color: #e2e8f0; margin-bottom: 8px; }
+    .faq-answer { color: #94a3b8; line-height: 1.7; font-size: 14px; }
+    
+    .cta-section {
+      text-align: center;
+      background: linear-gradient(135deg, #6366f1, #4f46e5);
+      color: white; border: none;
+    }
+    .cta-section h2 { color: white; justify-content: center; }
+    .cta-section p { color: rgba(255,255,255,0.8); }
+    .cta-btn {
+      padding: 10px 24px; background: white; color: #6366f1;
+      border: none; border-radius: 8px; font-size: 14px;
+      font-weight: 600; cursor: pointer; font-family: inherit;
+      transition: transform 0.2s;
+    }
+    .cta-btn:hover { transform: translateY(-2px); }
+    
+    @media (max-width: 700px) { .quick-links { grid-template-columns: repeat(2, 1fr); } }
+    @media (max-width: 400px) { .quick-links { grid-template-columns: 1fr; } }
+  </style>
+</head>
+<body>
+  <div class="help-container">
+    <div class="help-header">
+      <h1>ByteGuard Help Center</h1>
+      <p>Everything you need to know about managing your bandwidth</p>
+      <div class="search-box">
+        <input type="text" id="searchInput" placeholder="Search help topics...">
+        <span class="search-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        </span>
+      </div>
+    </div>
+
+    <div class="quick-links">
+      <a href="#getting-started" class="quick-link">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+        <div><h4>Getting Started</h4><p>First time setup</p></div>
+      </a>
+      <a href="#features" class="quick-link">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+        <div><h4>Features Guide</h4><p>How to use everything</p></div>
+      </a>
+      <a href="#troubleshooting" class="quick-link">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+        <div><h4>Troubleshooting</h4><p>Fix common issues</p></div>
+      </a>
+      <a href="#faq" class="quick-link">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+        <div><h4>FAQ</h4><p>Common questions</p></div>
+      </a>
+    </div>
+
+    <div id="getting-started" class="help-section">
+      <h2>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+        Getting Started
+      </h2>
+      <h3>What does ByteGuard do?</h3>
+      <p>ByteGuard monitors how much data each website uses as you browse. It helps you:</p>
+      <ul>
+        <li>Track bandwidth usage per tab and per website in real time</li>
+        <li>Set daily and monthly data budgets with smart alerts</li>
+        <li>Block data-heavy content automatically with Low-Data Mode</li>
+        <li>View usage trends with interactive charts and insights</li>
+        <li>Export data as JSON, CSV, or HTML reports</li>
+      </ul>
+      <h3>Quick Setup (2 minutes)</h3>
+      <p><strong>Step 1:</strong> Click the ByteGuard icon in your toolbar</p>
+      <p><strong>Step 2:</strong> Click Settings in the bottom navigation</p>
+      <p><strong>Step 3:</strong> Set your daily budget (e.g., 500 MB)</p>
+      <p><strong>Step 4:</strong> Set your monthly budget (e.g., 10 GB)</p>
+      <p><strong>Step 5:</strong> Click "Save Settings" — you're done!</p>
+      <div class="tip-box">
+        <strong>💡 Tip:</strong>
+        <p>Not sure what budget to set? Start with 500 MB/day and 10 GB/month, then adjust after a few days.</p>
+      </div>
+    </div>
+
+    <div id="features" class="help-section">
+      <h2>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+        Features Guide
+      </h2>
+      <h3>Real-Time Tracking</h3>
+      <p>Your bandwidth is tracked automatically. The popup shows today's usage, budget remaining, top sites, and a progress ring.</p>
+      <h3>Low-Data Mode</h3>
+      <p>Save 70-90% bandwidth by blocking images and videos across all sites. Toggle it from the popup or let it auto-activate at 90% budget.</p>
+      <div class="tip-box">
+        <strong>💡 Pro Tip:</strong>
+        <p>Enable "Auto Low-Data Mode" in Settings to automatically block media when you hit 90% of your budget!</p>
+      </div>
+      <h3>Site Blocking</h3>
+      <p>Each site in the popup has a block button. Click it to block that domain completely. Manage blocked sites in Settings.</p>
+      <h3>Charts & Analytics</h3>
+      <ul>
+        <li><strong>Daily Trend:</strong> Usage over 7/14/30 days</li>
+        <li><strong>Top Sites:</strong> Doughnut chart of data consumption</li>
+        <li><strong>Budget Progress:</strong> Daily vs monthly comparison</li>
+        <li><strong>Hourly Usage:</strong> When you use most data</li>
+      </ul>
+      <h3>Export & Backup</h3>
+      <ul>
+        <li><strong>JSON:</strong> Complete backup of all data</li>
+        <li><strong>CSV:</strong> Spreadsheet-friendly format</li>
+        <li><strong>Weekly Summary:</strong> Beautiful HTML report</li>
+        <li><strong>Import:</strong> Restore from any JSON backup</li>
+      </ul>
+    </div>
+
+    <div id="troubleshooting" class="help-section">
+      <h2>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06"/></svg>
+        Troubleshooting
+      </h2>
+      <h3>Extension not tracking data</h3>
+      <ul>
+        <li>Go to your browser's extensions page and click the reload button</li>
+        <li>Check the service worker for errors by clicking "service worker" link</li>
+        <li>Visit some websites and check the popup again</li>
+      </ul>
+      <h3>Low-Data Mode won't stay on</h3>
+      <ul>
+        <li>Remove and re-add the extension</li>
+        <li>Check service worker console for errors</li>
+        <li>Ensure <code style="background:#0f172a;padding:2px 6px;border-radius:4px;font-size:12px;">declarativeNetRequest</code> permission is granted</li>
+      </ul>
+      <h3>Charts not loading</h3>
+      <ul>
+        <li>Charts need at least a day of data to show meaningful results</li>
+        <li>Try refreshing the charts page</li>
+        <li>Check browser console (F12) for errors</li>
+      </ul>
+      <div class="warning-box">
+        <strong>⚠️ Still having issues?</strong>
+        <p>Open the service worker console from your browser's extensions page and look for error messages.</p>
+      </div>
+    </div>
+
+    <div id="faq" class="help-section">
+      <h2>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+        Frequently Asked Questions
+      </h2>
+      <div class="faq-item">
+        <div class="faq-question">Does ByteGuard slow down my browsing?</div>
+        <div class="faq-answer">No. ByteGuard is highly optimized, uses less than 50MB memory, and doesn't affect page load times.</div>
+      </div>
+      <div class="faq-item">
+        <div class="faq-question">Is my data sent to any server?</div>
+        <div class="faq-answer">Absolutely not. All data stays on your device. ByteGuard is 100% privacy-first — we don't collect or transmit anything.</div>
+      </div>
+      <div class="faq-item">
+        <div class="faq-question">How accurate is the tracking?</div>
+        <div class="faq-answer">Very accurate. We track all HTTP requests using native browser APIs. Cached content shows as 0 bytes (correct, since it's not re-downloaded).</div>
+      </div>
+      <div class="faq-item">
+        <div class="faq-question">Will Low-Data Mode break websites?</div>
+        <div class="faq-answer">Most sites work fine — text loads normally. Image-heavy sites may look different, but functionality remains. You can always toggle it off.</div>
+      </div>
+      <div class="faq-item">
+        <div class="faq-question">Can I sync across devices?</div>
+        <div class="faq-answer">Not yet automatically. You can export JSON on one device and import on another. Cloud sync is planned for a future update.</div>
+      </div>
+      <div class="faq-item">
+        <div class="faq-question">How do I reset everything?</div>
+        <div class="faq-answer">Go to Settings → Data Management → "Clear All Data". This resets all usage statistics and settings to defaults.</div>
+      </div>
+      <div class="faq-item">
+        <div class="faq-question">Does this work with VPNs?</div>
+        <div class="faq-answer">Yes! ByteGuard tracks at the browser level, not network level, so VPNs don't affect accuracy.</div>
+      </div>
+    </div>
+
+    <div class="help-section cta-section">
+      <h2>Need More Help?</h2>
+      <p style="margin-bottom:16px;">Can't find what you're looking for?</p>
+      <button class="cta-btn" onclick="chrome.runtime.openOptionsPage()">Open Settings</button>
+    </div>
+  </div>
+
+  <script>
+    document.getElementById('searchInput').addEventListener('input', (e) => {
+      const query = e.target.value.toLowerCase();
+      document.querySelectorAll('.help-section').forEach(section => {
+        const text = section.textContent.toLowerCase();
+        section.style.display = text.includes(query) || query === '' ? 'block' : 'none';
+      });
+    });
+  </script>
+</body>
+</html>

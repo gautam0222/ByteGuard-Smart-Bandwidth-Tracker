@@ -1,0 +1,39 @@
+{
+  "manifest_version": 3,
+  "name": "ByteGuard — Bandwidth Budget Tracker",
+  "version": "1.0.0",
+  "description": "Monitor, manage, and optimize your bandwidth usage with real-time tracking, smart budgets, and data-saving controls.",
+  "icons": {
+    "16": "assets/icons/icon-16.png",
+    "48": "assets/icons/icon-48.png",
+    "128": "assets/icons/icon-128.png"
+  },
+  "background": {
+    "service_worker": "background/service-worker.js",
+    "type": "module"
+  },
+  "action": {
+    "default_popup": "popup/popup.html",
+    "default_icon": {
+      "16": "assets/icons/icon-16.png",
+      "48": "assets/icons/icon-48.png",
+      "128": "assets/icons/icon-128.png"
+    }
+  },
+  "permissions": [
+    "webRequest",
+    "storage",
+    "notifications",
+    "declarativeNetRequest",
+    "tabs",
+    "alarms",
+    "downloads"
+  ],
+  "host_permissions": [
+    "<all_urls>"
+  ],
+  "options_page": "options/options.html",
+  "content_security_policy": {
+    "extension_pages": "script-src 'self'; object-src 'self'"
+  }
+}

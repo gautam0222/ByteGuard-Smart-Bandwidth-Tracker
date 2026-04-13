@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Debug — ByteGuard</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Inter', sans-serif;
+      padding: 20px; background: #0f172a; color: #f1f5f9;
+      max-width: 800px; margin: 0 auto;
+    }
+    h1 { font-size: 24px; font-weight: 700; color: #6366f1; margin-bottom: 4px; }
+    .subtitle { color: #64748b; font-size: 13px; margin-bottom: 24px; }
+    .section {
+      background: #1e293b; padding: 20px; margin-bottom: 16px;
+      border-radius: 12px; border: 1px solid #334155;
+    }
+    .section h2 { font-size: 15px; font-weight: 600; color: #e2e8f0; margin-bottom: 12px; }
+    button {
+      background: #6366f1; color: white; border: none;
+      padding: 8px 16px; border-radius: 8px; cursor: pointer;
+      margin-right: 8px; margin-bottom: 8px; font-size: 13px;
+      font-weight: 500; font-family: inherit; transition: all 0.2s;
+    }
+    button:hover { background: #4f46e5; transform: translateY(-1px); }
+    .status {
+      padding: 12px; margin: 10px 0; border-radius: 8px;
+      background: #0f172a; font-size: 13px;
+    }
+    .success { color: #34d399; } .error { color: #f87171; }
+    pre {
+      background: #0f172a; padding: 14px; border-radius: 8px;
+      overflow-x: auto; font-family: 'JetBrains Mono', monospace;
+      font-size: 12px; line-height: 1.5; color: #94a3b8;
+      border: 1px solid #334155; max-height: 300px; overflow-y: auto;
+    }
+  </style>
+</head>
+<body>
+  <h1>ByteGuard Debug Panel</h1>
+  <p class="subtitle">Developer tools for diagnosing extension issues</p>
+
+  <div class="section">
+    <h2>Low-Data Mode Status</h2>
+    <div id="statusDisplay" class="status">Loading...</div>
+    <button id="refreshStatusBtn">Refresh Status</button>
+    <button id="toggleModeBtn">Toggle Mode</button>
+  </div>
+
+  <div class="section">
+    <h2>Chrome Storage</h2>
+    <button id="checkStorageBtn">Inspect Storage</button>
+    <pre id="storageDisplay">Click button to inspect...</pre>
+  </div>
+
+  <div class="section">
+    <h2>Dynamic Rules</h2>
+    <button id="checkRulesBtn">List Rules</button>
+    <pre id="rulesDisplay">Click button to list...</pre>
+  </div>
+
+  <div class="section">
+    <h2>Message Tests</h2>
+    <button id="testGetStatusBtn">Test getLowDataStatus</button>
+    <button id="testToggleBtn">Test toggleLowDataMode</button>
+    <pre id="messageDisplay">Click button to test...</pre>
+  </div>
+
+  <div class="section">
+    <h2>Quick Actions</h2>
+    <button id="forceResetBtn" style="background:#dc2626;">Force Daily Reset</button>
+    <button id="viewHistoryBtn">View History</button>
+    <pre id="actionDisplay">Quick actions output...</pre>
+  </div>
+
+  <script src="debug.js"></script>
+</body>
+</html>
